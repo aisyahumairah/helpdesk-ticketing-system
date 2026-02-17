@@ -6,9 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{{ config('app.name') }} | Login</title>
     
-    <!-- Compiled CSS (Bootstrap 5 & Icons) -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Vite Assets -->
+    @vite(['resources/css/app.scss', 'resources/js/app.js'])
     
     <style>
         body { background: #F7F7F7; font-family: "Helvetica Neue", Roboto, Arial, "Droid Sans", sans-serif; }

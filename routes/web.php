@@ -7,10 +7,9 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ReplyController;
 use App\Http\Controllers\SupportController;
 use App\Http\Controllers\TicketController;
-
-// Route::get('/', function () {
-//     return view('welcome');
-// });
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\MailTemplateController;
 
 // Authentication Routes
 Route::middleware('guest')->group(function () {
@@ -44,6 +43,8 @@ Route::middleware('auth')->group(function () {
     // Ticket Routes
     Route::resource('tickets', TicketController::class);
     Route::post('/tickets/{ticket}/reply', [ReplyController::class, 'store'])->name('tickets.reply');
+    Route::post('/tickets/{ticket}/verify', [TicketController::class, 'verify'])->name('tickets.verify');
+    Route::post('/tickets/{ticket}/reopen', [TicketController::class, 'reopen'])->name('tickets.reopen');
 
     // IT Support Routes
     Route::middleware(['role:admin|it_support'])->group(function () {
@@ -52,6 +53,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/support/reports', [SupportController::class, 'report'])->name('support.reports');
         Route::get('/support/audit-trails', [SupportController::class, 'auditTrails'])->name('support.audit_trails');
         Route::post('/tickets/{ticket}/assign', [TicketController::class, 'assign'])->name('tickets.assign');
+        Route::post('/tickets/{ticket}/reassign', [TicketController::class, 'reassign'])->name('tickets.reassign');
         Route::post('/tickets/{ticket}/resolve', [TicketController::class, 'resolve'])->name('tickets.resolve');
         Route::post('/tickets/{ticket}/escalate', [TicketController::class, 'escalate'])->name('tickets.escalate');
     });
@@ -59,10 +61,24 @@ Route::middleware('auth')->group(function () {
     // Admin Routes
     Route::middleware(['role:admin'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+        
+        // User Management
         Route::resource('users', AdminController::class);
         Route::post('/users/{user}/reset-password', [AdminController::class, 'resetUserPassword'])->name('users.reset_password');
+        Route::post('/users/{user}/toggle-status', [AdminController::class, 'toggleUserStatus'])->name('users.toggle_status');
+        
+        // Roles & Permissions
+        Route::resource('roles', RoleController::class);
+        Route::post('/roles/{role}/attach-permissions', [RoleController::class, 'attachPermissions'])->name('roles.attach_permissions');
+        Route::resource('permissions', PermissionController::class);
+        
+        // Settings
         Route::get('/settings', [AdminController::class, 'settings'])->name('settings');
         Route::post('/settings', [AdminController::class, 'updateSettings'])->name('settings.update');
+        
+        // Mail Templates
+        Route::resource('mail-templates', MailTemplateController::class)->names('mail_templates');
+        Route::post('/mail-templates/{mailTemplate}/preview', [MailTemplateController::class, 'preview'])->name('mail_templates.preview');
     });
 });
 

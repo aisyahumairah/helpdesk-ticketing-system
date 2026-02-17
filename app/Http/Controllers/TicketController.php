@@ -170,12 +170,25 @@ class TicketController extends Controller
      */
     public function resolve(Ticket $ticket)
     {
-        if ($ticket->assigned_to !== Auth::id() && Auth::user()->role !== 'admin') {
+        if ($ticket->assigned_to !== Auth::id() && !Auth::user()->hasRole('admin')) {
             abort(403);
         }
 
+        $oldStatus = $ticket->status;
+        
         $ticket->update([
-            'status' => 'DONE',
+            'status' => 'CLOSED',
+            'resolved_at' => now(),
+            'resolved_by' => Auth::id(),
+        ]);
+
+        // Record status change
+        \App\Models\TicketStatusHistory::create([
+            'ticket_id' => $ticket->id,
+            'old_status' => $oldStatus,
+            'new_status' => 'CLOSED',
+            'changed_by' => Auth::id(),
+            'notes' => 'Ticket resolved by IT Support',
         ]);
 
         AuditTrail::create([
@@ -186,10 +199,150 @@ class TicketController extends Controller
             'ip_address' => request()->ip(),
         ]);
 
-        // Send Notification
+        // Send Notification to user
         $ticket->user->notify(new TicketStatusUpdated($ticket));
 
-        return redirect()->route('support.dashboard')->with('success', 'Ticket marked as resolved.');
+        return redirect()->back()->with('success', 'Ticket marked as resolved. User will be notified to verify.');
+    }
+
+    /**
+     * User verifies the ticket resolution
+     */
+    public function verify(Ticket $ticket)
+    {
+        if ($ticket->user_id !== Auth::id()) {
+            abort(403, 'Only the ticket creator can verify resolution.');
+        }
+
+        if ($ticket->status !== 'CLOSED') {
+            return redirect()->back()->with('error', 'Ticket must be in CLOSED status to verify.');
+        }
+
+        $oldStatus = $ticket->status;
+        
+        $ticket->update([
+            'status' => 'DONE',
+            'verified_at' => now(),
+            'verified_by' => Auth::id(),
+        ]);
+
+        // Record status change
+        \App\Models\TicketStatusHistory::create([
+            'ticket_id' => $ticket->id,
+            'old_status' => $oldStatus,
+            'new_status' => 'DONE',
+            'changed_by' => Auth::id(),
+            'notes' => 'Ticket verified as resolved by user',
+        ]);
+
+        AuditTrail::create([
+            'user_id' => Auth::id(),
+            'ticket_id' => $ticket->id,
+            'event' => 'Verify',
+            'details' => 'Ticket verified as resolved by ' . Auth::user()->name,
+            'ip_address' => request()->ip(),
+        ]);
+
+        // Notify IT Support
+        if ($ticket->assignedTo) {
+            $ticket->assignedTo->notify(new TicketStatusUpdated($ticket));
+        }
+
+        return redirect()->back()->with('success', 'Thank you for verifying the resolution!');
+    }
+
+    /**
+     * User reopens a ticket
+     */
+    public function reopen(Ticket $ticket)
+    {
+        if ($ticket->user_id !== Auth::id()) {
+            abort(403, 'Only the ticket creator can reopen the ticket.');
+        }
+
+        if (!in_array($ticket->status, ['CLOSED', 'DONE'])) {
+            return redirect()->back()->with('error', 'Only closed or done tickets can be reopened.');
+        }
+
+        $oldStatus = $ticket->status;
+        
+        $ticket->update([
+            'status' => 'REOPEN',
+            'reopen_count' => $ticket->reopen_count + 1,
+        ]);
+
+        // Record status change
+        \App\Models\TicketStatusHistory::create([
+            'ticket_id' => $ticket->id,
+            'old_status' => $oldStatus,
+            'new_status' => 'REOPEN',
+            'changed_by' => Auth::id(),
+            'notes' => 'Ticket reopened by user (Reopen #' . $ticket->reopen_count . ')',
+        ]);
+
+        AuditTrail::create([
+            'user_id' => Auth::id(),
+            'ticket_id' => $ticket->id,
+            'event' => 'Reopen',
+            'details' => 'Ticket reopened by ' . Auth::user()->name . ' (Reopen #' . $ticket->reopen_count . ')',
+            'ip_address' => request()->ip(),
+        ]);
+
+        // Notify assigned IT Support
+        if ($ticket->assignedTo) {
+            $ticket->assignedTo->notify(new TicketStatusUpdated($ticket));
+        }
+
+        return redirect()->back()->with('success', 'Ticket has been reopened. IT Support will be notified.');
+    }
+
+    /**
+     * Reassign ticket to another IT support
+     */
+    public function reassign(Request $request, Ticket $ticket)
+    {
+        if (!Auth::user()->hasAnyRole(['admin', 'it_support'])) {
+            abort(403);
+        }
+
+        $request->validate([
+            'assigned_to' => 'required|exists:users,id',
+            'notes' => 'nullable|string|max:500',
+        ]);
+
+        $oldAssignee = $ticket->assigned_to;
+        $newAssignee = $request->assigned_to;
+
+        if ($oldAssignee == $newAssignee) {
+            return redirect()->back()->with('error', 'Ticket is already assigned to this user.');
+        }
+
+        // Record the assignment
+        \App\Models\TicketAssignment::create([
+            'ticket_id' => $ticket->id,
+            'assigned_from' => $oldAssignee,
+            'assigned_to' => $newAssignee,
+            'notes' => $request->notes,
+        ]);
+
+        $ticket->update([
+            'assigned_to' => $newAssignee,
+            'status' => 'PEND', // Keep it pending
+        ]);
+
+        AuditTrail::create([
+            'user_id' => Auth::id(),
+            'ticket_id' => $ticket->id,
+            'event' => 'Reassign',
+            'details' => 'Ticket reassigned from ' . ($oldAssignee ? \App\Models\User::find($oldAssignee)->name : 'Unassigned') . ' to ' . \App\Models\User::find($newAssignee)->name,
+            'ip_address' => request()->ip(),
+        ]);
+
+        // Notify new assignee
+        $newAssigneeUser = \App\Models\User::find($newAssignee);
+        $newAssigneeUser->notify(new TicketAssigned($ticket));
+
+        return redirect()->back()->with('success', 'Ticket reassigned successfully.');
     }
 
     /**
@@ -197,7 +350,7 @@ class TicketController extends Controller
      */
     public function escalate(Ticket $ticket)
     {
-        if ($ticket->assigned_to !== Auth::id() && Auth::user()->role !== 'admin') {
+        if ($ticket->assigned_to !== Auth::id() && !Auth::user()->hasRole('admin')) {
             abort(403);
         }
 

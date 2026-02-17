@@ -55,7 +55,8 @@ class AdminController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
-            'role' => 'required|exists:roles,name',
+            'roles' => 'required|array',
+            'roles.*' => 'exists:roles,name',
         ]);
 
         $user = User::create([
@@ -64,7 +65,7 @@ class AdminController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        $user->assignRole($request->role);
+        $user->assignRole($request->roles);
 
         return redirect()->route('admin.users.index')->with('success', 'User created successfully.');
     }
@@ -86,7 +87,8 @@ class AdminController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
-            'role' => 'required|exists:roles,name',
+            'roles' => 'required|array',
+            'roles.*' => 'exists:roles,name',
         ]);
 
         $user->update([
@@ -94,7 +96,7 @@ class AdminController extends Controller
             'email' => $request->email,
         ]);
 
-        $user->syncRoles([$request->role]);
+        $user->syncRoles($request->roles);
 
         return redirect()->route('admin.users.index')->with('success', 'User updated successfully.');
     }

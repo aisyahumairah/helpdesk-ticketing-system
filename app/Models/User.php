@@ -27,6 +27,7 @@ class User extends Authenticatable
         'password',
         'phone',
         'google_id',
+        'is_active',
         'require_password_change',
     ];
 

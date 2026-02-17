@@ -33,7 +33,7 @@
 
                         <div class="form-group mb-3">
                             <label class="form-label">Category</label>
-                            <select name="category" class="form-control">
+                            <select name="category" class="form-control select2">
                                 <option value="">All Categories</option>
                                 @foreach($categories as $category)
                                     <option value="{{ $category->code }}">{{ $category->name }}</option>
@@ -43,7 +43,7 @@
 
                         <div class="form-group mb-3">
                             <label class="form-label">Status</label>
-                            <select name="status" class="form-control">
+                            <select name="status" class="form-control select2">
                                 <option value="">All Statuses</option>
                                 @foreach($statuses as $status)
                                     <option value="{{ $status->code }}">{{ $status->name }}</option>

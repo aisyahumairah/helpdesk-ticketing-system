@@ -1,18 +1,31 @@
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
-import tailwindcss from '@tailwindcss/vite';
+import path from 'path';
 
 export default defineConfig({
     plugins: [
         laravel({
-            input: ['resources/css/app.css', 'resources/js/app.js'],
+            input: ['resources/css/app.scss', 'resources/js/app.js'],
             refresh: true,
         }),
-        tailwindcss(),
     ],
+    resolve: {
+        alias: {
+            '@gentelella': path.resolve(__dirname, 'public/gentelella/src'),
+            '~bootstrap': path.resolve(__dirname, 'node_modules/bootstrap'),
+        },
+    },
+    css: {
+        preprocessorOptions: {
+            scss: {
+                includePaths: ['node_modules'],
+            },
+        },
+    },
     server: {
-        watch: {
-            ignored: ['**/storage/framework/views/**'],
+        host: '127.0.0.1',
+        hmr: {
+            host: 'localhost',
         },
     },
 });

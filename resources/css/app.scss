@@ -1,0 +1,48 @@
+// 1. Core styles
+@import 'bootstrap/scss/bootstrap';
+
+// 2. Gentelella core (Variables first)
+@import '../../public/gentelella/src/scss/variables';
+
+// 3. Gentelella custom
+@import '../../public/gentelella/src/scss/custom.scss';
+
+// 4. Other libraries
+@import 'select2/dist/css/select2.min.css';
+@import 'select2-bootstrap-5-theme/dist/select2-bootstrap-5-theme.min.css';
+@import 'sweetalert2/src/sweetalert2.scss';
+@import 'datatables.net-bs5/css/dataTables.bootstrap5.min.css';
+@import 'datatables.net-responsive-bs5/css/responsive.bootstrap5.min.css';
+@import 'datatables.net-buttons-bs5/css/buttons.bootstrap5.min.css';
+
+
+// 5. FontAwesome
+@import '@fortawesome/fontawesome-free/scss/fontawesome.scss';
+@import '@fortawesome/fontawesome-free/scss/solid.scss';
+@import '@fortawesome/fontawesome-free/scss/regular.scss';
+@import '@fortawesome/fontawesome-free/scss/brands.scss';
+
+// 6. Bootstrap Icons
+@import 'bootstrap-icons/font/bootstrap-icons.css';
+
+// 7. Fixes for Topbar clickability and layout
+.top_nav {
+    z-index: 1020 !important; // Ensure it's above content
+}
+
+.right_col {
+    z-index: 1;
+}
+
+#menu_toggle {
+    cursor: pointer;
+    z-index: 1021;
+}
+
+// Adjust top_nav width for mobile
+@media (max-width: 991px) {
+    .top_nav {
+        width: 100% !important;
+        margin-left: 0 !important;
+    }
+}

@@ -25,7 +25,7 @@
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">Status</label>
-                            <select name="status" class="form-control">
+                            <select name="status" class="form-control select2">
                                 <option value="">All Statuses</option>
                                 @foreach($statuses as $status)
                                     <option value="{{ $status->code }}" {{ request('status') == $status->code ? 'selected' : '' }}>{{ $status->name }}</option>

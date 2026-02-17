@@ -18,6 +18,16 @@ class Ticket extends Model
         'user_id',
         'assigned_to',
         'escalation_level',
+        'resolved_at',
+        'resolved_by',
+        'verified_at',
+        'verified_by',
+        'reopen_count',
+    ];
+
+    protected $casts = [
+        'resolved_at' => 'datetime',
+        'verified_at' => 'datetime',
     ];
 
     public function replies()
@@ -40,6 +50,16 @@ class Ticket extends Model
         return $this->belongsTo(User::class, 'assigned_to');
     }
 
+    public function resolvedBy()
+    {
+        return $this->belongsTo(User::class, 'resolved_by');
+    }
+
+    public function verifiedBy()
+    {
+        return $this->belongsTo(User::class, 'verified_by');
+    }
+
     public function categoryCode()
     {
         return $this->belongsTo(Code::class, 'category', 'code')->where('type', 'comp_type');
@@ -58,5 +78,23 @@ class Ticket extends Model
     public function attachments()
     {
         return $this->morphMany(UploadedFile::class, 'fileable');
+    }
+
+    public function assignments()
+    {
+        return $this->hasMany(TicketAssignment::class);
+    }
+
+    public function statusHistory()
+    {
+        return $this->hasMany(TicketStatusHistory::class);
+    }
+
+    /**
+     * Get the current assignment
+     */
+    public function currentAssignment()
+    {
+        return $this->hasOne(TicketAssignment::class)->latest();
     }
 }

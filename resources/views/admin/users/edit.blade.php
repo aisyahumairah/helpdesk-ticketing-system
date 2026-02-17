@@ -32,9 +32,9 @@
                         </div>
 
                         <div class="form-group row mb-3">
-                            <label class="col-form-label col-md-3 col-sm-3 label-align">Role <span class="required">*</span></label>
+                            <label class="col-form-label col-md-3 col-sm-3 label-align">Roles <span class="required">*</span></label>
                             <div class="col-md-6 col-sm-6">
-                                <select name="role" class="form-control" required>
+                                <select name="roles[]" class="form-control select2" multiple required>
                                     @foreach($roles as $role)
                                         <option value="{{ $role->name }}" {{ $user->hasRole($role->name) ? 'selected' : '' }}>{{ strtoupper($role->name) }}</option>
                                     @endforeach
