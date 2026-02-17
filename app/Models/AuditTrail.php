@@ -14,6 +14,10 @@ class AuditTrail extends Model
         'ip_address',
     ];
 
+    protected $casts = [
+        'details' => 'array',
+    ];
+
     public function user()
     {
         return $this->belongsTo(User::class);

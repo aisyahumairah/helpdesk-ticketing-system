@@ -108,7 +108,15 @@ class TicketController extends Controller
             'user_id' => Auth::id(),
             'ticket_id' => $ticket->id,
             'event' => 'Create',
-            'details' => 'Ticket created by ' . Auth::user()->name,
+            'details' => [
+                'message' => 'Ticket created by ' . Auth::user()->name,
+                'data' => [
+                    'title' => $ticket->title,
+                    'category' => $ticket->category,
+                    'urgency' => $ticket->urgency,
+                    'status' => $ticket->status,
+                ]
+            ],
             'ip_address' => request()->ip(),
         ]);
 
@@ -168,7 +176,13 @@ class TicketController extends Controller
             'user_id' => Auth::id(),
             'ticket_id' => $ticket->id,
             'event' => 'Assign',
-            'details' => 'Ticket assigned to ' . Auth::user()->name,
+            'details' => [
+                'message' => 'Ticket self-assigned by ' . Auth::user()->name,
+                'changes' => [
+                    'assigned_to' => ['old' => null, 'new' => Auth::id()],
+                    'status' => ['old' => 'NEW', 'new' => 'PEND']
+                ]
+            ],
             'ip_address' => request()->ip(),
         ]);
 
@@ -205,11 +219,16 @@ class TicketController extends Controller
                 'notes' => 'Ticket resolved by IT Support',
             ]);
 
-                AuditTrail::create([
+            AuditTrail::create([
                 'user_id' => Auth::id(),
                 'ticket_id' => $ticket->id,
                 'event' => 'Resolve',
-                'details' => 'Ticket resolved by ' . Auth::user()->name,
+                'details' => [
+                    'message' => 'Ticket resolved by ' . Auth::user()->name,
+                    'changes' => [
+                        'status' => ['old' => $oldStatus, 'new' => 'CLOSE']
+                    ]
+                ],
                 'ip_address' => request()->ip(),
             ]);
 
@@ -258,7 +277,12 @@ class TicketController extends Controller
                 'user_id' => Auth::id(),
                 'ticket_id' => $ticket->id,
                 'event' => 'Verify',
-                'details' => 'Ticket verified as resolved by ' . Auth::user()->name,
+                'details' => [
+                    'message' => 'Ticket verified as resolved by ' . Auth::user()->name,
+                    'changes' => [
+                        'status' => ['old' => $oldStatus, 'new' => 'DONE']
+                    ]
+                ],
                 'ip_address' => request()->ip(),
             ]);
 
@@ -308,7 +332,13 @@ class TicketController extends Controller
                 'user_id' => Auth::id(),
                 'ticket_id' => $ticket->id,
                 'event' => 'Reopen',
-                'details' => 'Ticket reopened by ' . Auth::user()->name . ' (Reopen #' . $ticket->reopen_count . ')',
+                'details' => [
+                    'message' => 'Ticket reopened by ' . Auth::user()->name . ' (Reopen #' . $ticket->reopen_count . ')',
+                    'changes' => [
+                        'status' => ['old' => $oldStatus, 'new' => 'REOPEN'],
+                        'reopen_count' => ['old' => $ticket->reopen_count - 1, 'new' => $ticket->reopen_count]
+                    ]
+                ],
                 'ip_address' => request()->ip(),
             ]);
 
@@ -362,7 +392,13 @@ class TicketController extends Controller
             'user_id' => Auth::id(),
             'ticket_id' => $ticket->id,
             'event' => 'Reassign',
-            'details' => 'Ticket reassigned from ' . ($oldAssignee ? \App\Models\User::find($oldAssignee)->name : 'Unassigned') . ' to ' . \App\Models\User::find($newAssignee)->name,
+            'details' => [
+                'message' => 'Ticket reassigned from ' . ($oldAssignee ? \App\Models\User::find($oldAssignee)->name : 'Unassigned') . ' to ' . \App\Models\User::find($newAssignee)->name,
+                'changes' => [
+                    'assigned_to' => ['old' => $oldAssignee, 'new' => $newAssignee],
+                    'notes' => ['old' => null, 'new' => $request->notes]
+                ]
+            ],
             'ip_address' => request()->ip(),
         ]);
 
@@ -408,7 +444,14 @@ class TicketController extends Controller
             'user_id' => Auth::id(),
             'ticket_id' => $ticket->id,
             'event' => 'Escalate',
-            'details' => 'Ticket escalated from ' . ($oldAssignee ? \App\Models\User::find($oldAssignee)->name : 'Unassigned') . ' to ' . \App\Models\User::find($newAssignee)->name,
+            'details' => [
+                'message' => 'Ticket escalated from ' . ($oldAssignee ? \App\Models\User::find($oldAssignee)->name : 'Unassigned') . ' to ' . \App\Models\User::find($newAssignee)->name,
+                'changes' => [
+                    'assigned_to' => ['old' => $oldAssignee, 'new' => $newAssignee],
+                    'escalation_level' => ['old' => $ticket->escalation_level - 1, 'new' => $ticket->escalation_level],
+                    'notes' => ['old' => null, 'new' => $request->notes]
+                ]
+            ],
             'ip_address' => request()->ip(),
         ]);
 

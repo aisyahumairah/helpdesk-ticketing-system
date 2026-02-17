@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AuditTrail;
 use Illuminate\Http\Request;
 
 use App\Models\Ticket;
@@ -104,6 +105,17 @@ class SupportController extends Controller
     {
         $query = \App\Models\AuditTrail::with(['user']);
 
+        $eventTypes = \App\Models\AuditTrail::select('event')->distinct()->pluck('event');
+        $query->when($request->filled('event_type'), function ($q) use ($request) {
+            $q->where('event', $request->event_type);
+        });
+
+        $userIds = \App\Models\AuditTrail::select('user_id')->distinct()->pluck('user_id');
+        $users = \App\Models\User::whereIn('id', $userIds)->get(['id', 'name']);
+        $query->when($request->filled('user_id'), function ($q) use ($request) {
+            $q->where('user_id', $request->user_id);
+        });
+
         if ($request->filled('date')) {
             $query->whereDate('created_at', $request->date);
         } else {
@@ -112,6 +124,6 @@ class SupportController extends Controller
 
         $trails = $query->latest()->get();
 
-        return view('support.audit_trails', compact('trails'));
+        return view('support.audit_trails', compact('trails', 'eventTypes', 'users'));
     }
 }
