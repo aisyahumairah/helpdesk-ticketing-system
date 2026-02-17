@@ -18,11 +18,12 @@
                         <div class="clearfix"></div>
                     </div>
                     <div class="x_content">
-                        <form action="{{ route('tickets.store') }}" method="POST" enctype="multipart/form-data">
+                        <form action="{{ route('tickets.store') }}" method="POST" enctype="multipart/form-data"
+                            class="form-horizontal form-label-left">
                             @csrf
 
                             @if ($users)
-                                <div class="form-group row">
+                                <div class="item form-group">
                                     <label class="col-form-label col-md-3 col-sm-3 label-align" for="user_id">Requestor
                                         (User) <span class="required">*</span></label>
                                     <div class="col-md-6 col-sm-6">
@@ -31,14 +32,15 @@
                                             @foreach ($users as $user)
                                                 <option value="{{ $user->id }}"
                                                     {{ old('user_id') == $user->id ? 'selected' : '' }}>{{ $user->name }}
-                                                    ({{ $user->email }})</option>
+                                                    ({{ $user->email }})
+                                                </option>
                                             @endforeach
                                         </select>
                                     </div>
                                 </div>
                             @endif
 
-                            <div class="form-group row">
+                            <div class="item form-group">
                                 <label class="col-form-label col-md-3 col-sm-3 label-align" for="title">Title <span
                                         class="required">*</span></label>
                                 <div class="col-md-6 col-sm-6">
@@ -47,7 +49,7 @@
                                 </div>
                             </div>
 
-                            <div class="form-group row">
+                            <div class="item form-group">
                                 <label class="col-form-label col-md-3 col-sm-3 label-align" for="category">Category <span
                                         class="required">*</span></label>
                                 <div class="col-md-6 col-sm-6">
@@ -62,7 +64,7 @@
                                 </div>
                             </div>
 
-                            <div class="form-group row">
+                            <div class="item form-group">
                                 <label class="col-form-label col-md-3 col-sm-3 label-align" for="urgency">Urgency <span
                                         class="required">*</span></label>
                                 <div class="col-md-6 col-sm-6">
@@ -77,7 +79,7 @@
                                 </div>
                             </div>
 
-                            <div class="form-group row">
+                            <div class="item form-group">
                                 <label class="col-form-label col-md-3 col-sm-3 label-align" for="description">Description
                                     <span class="required">*</span></label>
                                 <div class="col-md-6 col-sm-6">
@@ -85,7 +87,7 @@
                                 </div>
                             </div>
 
-                            <div class="form-group row">
+                            <div class="item form-group">
                                 <label class="col-form-label col-md-3 col-sm-3 label-align"
                                     for="attachments">Attachments</label>
                                 <div class="col-md-6 col-sm-6">
@@ -97,7 +99,7 @@
                             </div>
 
                             <div class="ln_solid"></div>
-                            <div class="form-group row">
+                            <div class="item form-group">
                                 <div class="col-md-6 col-sm-6 offset-md-3">
                                     <button type="submit" class="btn btn-success">Submit Ticket</button>
                                     <a href="{{ route('tickets.index') }}" class="btn btn-primary">Cancel</a>
@@ -109,4 +111,15 @@
             </div>
         </div>
     </div>
+@endsection
+
+@section('script')
+    <script src="https://cdn.ckeditor.com/ckeditor5/41.1.0/classic/ckeditor.js"></script>
+    <script>
+        ClassicEditor
+            .create(document.querySelector('#description'))
+            .catch(error => {
+                console.error(error);
+            });
+    </script>
 @endsection

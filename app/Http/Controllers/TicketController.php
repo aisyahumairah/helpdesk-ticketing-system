@@ -125,7 +125,10 @@ class TicketController extends Controller
             'categoryCode', 'urgencyCode', 'statusCode', 'attachments', 'user', 'assignedTo', 
             'auditTrails.user', 'replies.user', 'replies.attachments'
         ]);
-        return view('tickets.show', compact('ticket'));
+
+        $supportUsers = \App\Models\User::role(['admin', 'it_support'])->get();
+
+        return view('tickets.show', compact('ticket', 'supportUsers'));
     }
 
     /**
@@ -348,15 +351,31 @@ class TicketController extends Controller
     /**
      * Escalate a ticket.
      */
-    public function escalate(Ticket $ticket)
+    public function escalate(Request $request, Ticket $ticket)
     {
         if ($ticket->assigned_to !== Auth::id() && !Auth::user()->hasRole('admin')) {
             abort(403);
         }
 
+        $request->validate([
+            'assigned_to' => 'required|exists:users,id',
+            'notes' => 'nullable|string|max:500',
+        ]);
+
+        $oldAssignee = $ticket->assigned_to;
+        $newAssignee = $request->assigned_to;
+
+        // Record the assignment/escalation
+        \App\Models\TicketAssignment::create([
+            'ticket_id' => $ticket->id,
+            'assigned_from' => $oldAssignee,
+            'assigned_to' => $newAssignee,
+            'notes' => $request->notes ?? 'Ticket escalated',
+        ]);
+
         $ticket->update([
-            'assigned_to' => null,
-            'status' => 'PEND', // Keep it pending but back in pool
+            'assigned_to' => $newAssignee,
+            'status' => 'PEND', 
             'escalation_level' => $ticket->escalation_level + 1,
         ]);
 
@@ -364,12 +383,16 @@ class TicketController extends Controller
             'user_id' => Auth::id(),
             'ticket_id' => $ticket->id,
             'event' => 'Escalate',
-            'details' => 'Ticket escalated to level ' . $ticket->escalation_level . ' by ' . Auth::user()->name,
+            'details' => 'Ticket escalated from ' . ($oldAssignee ? \App\Models\User::find($oldAssignee)->name : 'Unassigned') . ' to ' . \App\Models\User::find($newAssignee)->name,
             'ip_address' => request()->ip(),
         ]);
 
         // Send Notification
         $ticket->user->notify(new TicketStatusUpdated($ticket));
+        
+        // Notify new assignee
+        $newAssigneeUser = \App\Models\User::find($newAssignee);
+        $newAssigneeUser->notify(new TicketAssigned($ticket));
 
         return redirect()->route('support.dashboard')->with('success', 'Ticket escalated successfully.');
     }
