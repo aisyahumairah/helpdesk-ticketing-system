@@ -79,25 +79,26 @@
                                         <td>
                                             @php
                                                 $urgencyClass = match ($ticket->urgency) {
-                                                    'HIGH', 'CRIT' => 'bg-danger',
-                                                    'MED' => 'bg-warning text-dark',
-                                                    default => 'bg-info',
+                                                    'HIGH', 'CRIT' => 'bg-red',
+                                                    'MED' => 'bg-orange',
+                                                    'LOW' => 'bg-green',
+                                                    default => 'bg-blue',
                                                 };
                                             @endphp
                                             <span
                                                 class="badge {{ $urgencyClass }}">{{ $ticket->urgencyCode->name ?? $ticket->urgency }}</span>
                                         </td>
                                         <td><span
-                                                class="badge {{ $ticket->escalation_level > 0 ? 'bg-danger' : 'bg-secondary' }}">{{ $ticket->escalation_level }}</span>
+                                                class="badge {{ $ticket->escalation_level > 0 ? 'bg-red' : 'bg-secondary' }}">{{ $ticket->escalation_level }}</span>
                                         </td>
                                         <td>
                                             @php
                                                 $statusClass = match ($ticket->status) {
-                                                    'NEW' => 'bg-primary',
-                                                    'PEND' => 'bg-warning text-dark',
-                                                    'CLOSE', 'DONE' => 'bg-success',
+                                                    'NEW' => 'bg-blue',
+                                                    'PEND' => 'bg-orange',
+                                                    'CLOSE', 'CLOSED', 'DONE' => 'bg-green',
                                                     'REOPEN' => 'bg-dark',
-                                                    default => 'bg-info',
+                                                    default => 'bg-blue',
                                                 };
                                             @endphp
                                             <span

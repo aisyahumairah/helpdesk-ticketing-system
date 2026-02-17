@@ -32,7 +32,6 @@ class MailTemplateController extends Controller
 
         try {
             $validated['slug'] = Str::slug($validated['name']);
-            $validated['available_placeholders'] = json_encode($validated['available_placeholders'] ?? []);
             
             MailTemplate::create($validated);
 
@@ -67,7 +66,6 @@ class MailTemplateController extends Controller
 
         try {
             $validated['slug'] = Str::slug($validated['name']);
-            $validated['available_placeholders'] = json_encode($validated['available_placeholders'] ?? []);
             
             $mailTemplate->update($validated);
 

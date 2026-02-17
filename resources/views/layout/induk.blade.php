@@ -8,7 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <title>{{ config('app.name') }}</title>
-    
+
     <!-- jQuery (Required for Select2/Gentelella) -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 
@@ -20,13 +20,16 @@
     <div class="container body">
         <div class="main_container">
             @include('layout.sidebar')
-            @include('layout.topbar')
-            
-            <main class="right_col" role="main" aria-label="Main content">
-                @yield('content')
-            </main>
-            
-            @include('layout.footer')
+
+            <div class="right-side-container">
+                @include('layout.topbar')
+
+                <main class="right_col" role="main" aria-label="Main content">
+                    @yield('content')
+                </main>
+
+                @include('layout.footer')
+            </div>
         </div>
     </div>
 
@@ -61,7 +64,7 @@
                 confirmButtonColor: '#26B99A'
             });
         };
-        
+
         window.showError = function(message) {
             Swal.fire({
                 icon: 'error',
@@ -70,7 +73,7 @@
                 confirmButtonColor: '#E74C3C'
             });
         };
-        
+
         window.showWarning = function(message) {
             Swal.fire({
                 icon: 'warning',
@@ -79,7 +82,7 @@
                 confirmButtonColor: '#f0ad4e'
             });
         };
-        
+
         window.confirmAction = function(message, callback) {
             Swal.fire({
                 title: 'Are you sure?',
@@ -97,13 +100,13 @@
         };
 
         // Auto-show flash messages
-        @if(session('success'))
+        @if (session('success'))
             showSuccess("{{ session('success') }}");
         @endif
-        @if(session('error'))
+        @if (session('error'))
             showError("{{ session('error') }}");
         @endif
-        @if(session('warning'))
+        @if (session('warning'))
             showWarning("{{ session('warning') }}");
         @endif
     </script>

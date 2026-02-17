@@ -1,10 +1,18 @@
-// 1. Core styles
-@import 'bootstrap/scss/bootstrap';
-
-// 2. Gentelella core (Variables first)
+// 1. Gentelella core (Variables first)
 @import '../../public/gentelella/src/scss/variables';
 
-// 3. Gentelella custom
+// 2. Map Gentelella variables to Bootstrap defaults (must be before bootstrap import)
+$primary: $gt-accent; // #3498db
+$success: $gt-primary; // #1abb9c
+$info: $gt-info; // #3498db
+$warning: $gt-warning; // #f39c12
+$danger: $gt-danger; // #e74c3c
+$secondary: $gt-secondary; // #2a3f54
+
+// 3. Core styles
+@import 'bootstrap/scss/bootstrap';
+
+// 4. Gentelella custom
 @import '../../public/gentelella/src/scss/custom.scss';
 
 // 4. Other libraries
@@ -15,7 +23,6 @@
 @import 'datatables.net-responsive-bs5/css/responsive.bootstrap5.min.css';
 @import 'datatables.net-buttons-bs5/css/buttons.bootstrap5.min.css';
 
-
 // 5. FontAwesome
 @import '@fortawesome/fontawesome-free/scss/fontawesome.scss';
 @import '@fortawesome/fontawesome-free/scss/solid.scss';
@@ -25,24 +32,142 @@
 // 6. Bootstrap Icons
 @import 'bootstrap-icons/font/bootstrap-icons.css';
 
-// 7. Fixes for Topbar clickability and layout
-.top_nav {
-    z-index: 1020 !important; // Ensure it's above content
+// -------------------------------------------------------------------
+// 7. ABSOLUTE DUAL-PANE COUPLING (FORCED INDEPENDENT SCROLL)
+// -------------------------------------------------------------------
+
+// Force lock the main window
+html,
+body,
+.container.body,
+.main_container {
+    height: 100vh !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+// Sidebar: Independent Scroll Box 1
+.col-md-3.left_col {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    width: 230px !important;
+    height: 100vh !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    z-index: 1000 !important;
+    background: #2A3F54 !important;
+    padding: 0 !important;
+
+    &::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+    }
+}
+
+// Content Block: Independent Scroll Box 2 (Top + RightCol + Footer)
+.right-side-container {
+    position: fixed !important;
+    top: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    left: 230px !important;
+    height: 100vh !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    z-index: 500 !important;
+    background: #F7F7F7 !important;
+    display: flex !important;
+    flex-direction: column !important;
+
+    &::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: #ccc;
+        border-radius: 4px;
+    }
+}
+
+// Resets for inner components to prevent Gentelella layout interference
+.top_nav,
+.right_col,
+footer {
+    width: 100% !important;
+    margin: 0 !important;
+    position: relative !important;
+    display: block !important;
+    float: none !important;
+    left: 0 !important;
+    right: 0 !important;
 }
 
 .right_col {
-    z-index: 1;
+    flex: 1 !important;
+    padding: 20px !important;
+    min-height: auto !important; // Kill Gentelella JS injected min-height
 }
 
+footer {
+    padding: 15px 20px !important;
+    background: #fff !important;
+    border-top: 1px solid #D9DEE4 !important;
+    flex-shrink: 0 !important;
+}
+
+// Small Sidebar Logic (nav-sm)
+body.nav-sm {
+    .col-md-3.left_col {
+        width: 70px !important;
+    }
+
+    .right-side-container {
+        left: 70px !important;
+    }
+}
+
+// Misc
 #menu_toggle {
     cursor: pointer;
-    z-index: 1021;
 }
 
-// Adjust top_nav width for mobile
+// Mobile Reset: Go back to normal stacking
 @media (max-width: 991px) {
-    .top_nav {
+
+    html,
+    body,
+    .container.body,
+    .main_container {
+        height: auto !important;
+        overflow: auto !important;
+    }
+
+    .col-md-3.left_col {
+        position: relative !important;
         width: 100% !important;
-        margin-left: 0 !important;
+        height: auto !important;
+        left: 0 !important;
+        overflow: visible !important;
+        display: block !important;
+    }
+
+    .right-side-container {
+        position: relative !important;
+        width: 100% !important;
+        height: auto !important;
+        left: 0 !important;
+        overflow: visible !important;
+        display: block !important;
     }
 }

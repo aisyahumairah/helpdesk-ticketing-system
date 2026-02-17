@@ -15,7 +15,7 @@
         <div class="clearfix"></div>
 
         <div class="row">
-            <div class="col-md-8 col-sm-12">
+            <div class="col-md-8 col-sm-12 col-xs-12">
                 <div class="x_panel">
                     <div class="x_title">
                         <h2>{{ $ticket->ticket_id }} - {{ $ticket->title }}</h2>
@@ -119,7 +119,7 @@
                 </div>
             </div>
 
-            <div class="col-md-4 col-sm-12">
+            <div class="col-md-4 col-sm-12 col-xs-12">
                 <div class="x_panel">
                     <div class="x_title">
                         <h2>Ticket Status</h2>
@@ -150,7 +150,7 @@
 
                         @if ($canAction && !in_array($ticket->status, ['DONE', 'CLOSE']))
                             <div class="ln_solid"></div>
-                            <div class="d-flex gap-2">
+                            <div class="d-flex flex-wrap gap-2">
                                 <form id="form-resolve" action="{{ route('tickets.resolve', $ticket) }}" method="POST"
                                     class="flex-grow-1">
                                     @csrf
@@ -169,7 +169,7 @@
 
                         @if ($isOwner && $ticket->status == 'CLOSED')
                             <div class="ln_solid"></div>
-                            <div class="d-flex gap-2">
+                            <div class="d-flex flex-wrap gap-2">
                                 <form id="form-verify" action="{{ route('tickets.verify', $ticket) }}" method="POST"
                                     class="flex-grow-1">
                                     @csrf
