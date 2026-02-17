@@ -38,6 +38,8 @@ Route::middleware('auth')->group(function () {
     // Profile Routes
     Route::get('/profile', [AuthController::class, 'showProfile'])->name('profile');
     Route::post('/profile', [AuthController::class, 'updateProfile'])->name('profile.update');
+    Route::get('/change-password', [AuthController::class, 'showChangePassword'])->name('password.change');
+    Route::post('/change-password', [AuthController::class, 'updatePassword'])->name('password.change.update');
     Route::get('/notifications/read', [AuthController::class, 'markNotificationsAsRead'])->name('notifications.mark_read');
 
     // Ticket Routes

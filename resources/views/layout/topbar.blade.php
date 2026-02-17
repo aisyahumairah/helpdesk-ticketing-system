@@ -7,17 +7,22 @@
             <ul class="navbar-right d-flex align-items-center gap-3 pe-3">
 
                 <li role="presentation" class="nav-item dropdown">
-                    <a href="javascript:;" class="dropdown-toggle info-number" id="navbarDropdown1" data-bs-toggle="dropdown" aria-expanded="false">
+                    <a href="javascript:;" class="dropdown-toggle info-number" id="navbarDropdown1"
+                        data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="fa fa-bell"></i>
-                        @if(Auth::user()->unreadNotifications->count() > 0)
+                        @if (Auth::user()->unreadNotifications->count() > 0)
                             <span class="badge bg-green">{{ Auth::user()->unreadNotifications->count() }}</span>
                         @endif
                     </a>
-                    <ul class="dropdown-menu dropdown-menu-end list-unstyled msg_list pb-0" role="menu" aria-labelledby="navbarDropdown1" style="min-width: 300px;">
+                    <ul class="dropdown-menu dropdown-menu-end list-unstyled msg_list pb-0" role="menu"
+                        aria-labelledby="navbarDropdown1" style="min-width: 300px;">
                         @forelse(Auth::user()->unreadNotifications->take(5) as $notification)
                             <li class="nav-item">
-                                <a class="dropdown-item" href="{{ route('tickets.show', $notification->data['ticket_id']) }}">
-                                    <span class="image"><img src="https://ui-avatars.com/api/?name=System&background=random" alt="Profile Image" /></span>
+                                <a class="dropdown-item"
+                                    href="{{ route('tickets.show', $notification->data['ticket_id']) }}">
+                                    <span class="image"><img
+                                            src="https://ui-avatars.com/api/?name=System&background=random"
+                                            alt="Profile Image" /></span>
                                     <span>
                                         <span>{{ $notification->data['message'] }}</span>
                                         <span class="time">{{ $notification->created_at->diffForHumans() }}</span>
@@ -35,7 +40,7 @@
                             </li>
                         @endforelse
 
-                        @if(Auth::user()->unreadNotifications->count() > 0)
+                        @if (Auth::user()->unreadNotifications->count() > 0)
                             <li class="nav-item border-top">
                                 <div class="text-center p-2">
                                     <a class="dropdown-item" href="{{ route('notifications.mark_read') }}">
@@ -49,13 +54,24 @@
                 </li>
 
                 <li class="nav-item dropdown">
-                    <a href="javascript:;" class="user-profile dropdown-toggle" aria-haspopup="true" id="navbarDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                        <img src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->name) }}&background=random" alt="">{{ Auth::user()->name }}
+                    <a href="javascript:;" class="user-profile dropdown-toggle" aria-haspopup="true" id="navbarDropdown"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                        <img src="https://ui-avatars.com/api/?name={{ urlencode(Auth::user()->name) }}&background=random"
+                            alt="">{{ Auth::user()->name }}
                     </a>
                     <div class="dropdown-menu dropdown-menu-end dropdown-usermenu" aria-labelledby="navbarDropdown">
-                        <a class="dropdown-item" href="{{ route('profile') }}"><i class="fa fa-user pull-right"></i> Profile</a>
-                        <a class="dropdown-item" href="{{ route('admin.settings') }}"><i class="fa fa-cog pull-right"></i> Settings</a>
-                        <a class="dropdown-item" href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();"><i class="fa fa-sign-out-alt pull-right"></i> Log Out</a>
+                        <a class="dropdown-item" href="{{ route('profile') }}"><i class="fa fa-user pull-right"></i>
+                            Profile
+                        </a>
+                        <a class="dropdown-item" href="{{ route('password.change') }}"><i
+                                class="fa fa-key pull-right"></i>
+                            Change Password
+                        </a>
+                        <a class="dropdown-item" href="{{ route('admin.settings') }}"><i
+                                class="fa fa-cog pull-right"></i> Settings</a>
+                        <a class="dropdown-item" href="#"
+                            onclick="event.preventDefault(); document.getElementById('logout-form').submit();"><i
+                                class="fa fa-sign-out-alt pull-right"></i> Log Out</a>
                         <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
                             @csrf
                         </form>

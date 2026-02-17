@@ -127,21 +127,47 @@ class AuthController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'phone' => 'nullable|string|max:20',
-            'password' => 'nullable|string|min:8|confirmed',
         ]);
 
-        $data = [
-            'name' => $validated['name'],
-            'phone' => $validated['phone'],
-        ];
+        $user->update($validated);
+        return back()->with('success', 'Profile updated!');
+    }
 
-        if ($request->filled('password')) {
-            $data['password'] = Hash::make($validated['password']);
-            $data['require_password_change'] = false;
-        }
+    // Show change password form
+    public function showChangePassword()
+    {
+        return view('auth.change-password');
+    }
 
-        $user->update($data);
-        return back()->with('status', 'Profile updated!');
+    // Update password
+    public function updatePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required|current_password',
+            'password' => [
+                'required',
+                'string',
+                'min:8',
+                'max:12',
+                'regex:/[a-z]/',      // at least one lowercase letter
+                'regex:/[A-Z]/',      // at least one uppercase letter
+                'regex:/[0-9]/',      // at least one digit
+                'regex:/[@$!%*#?&.]/', // at least one special character
+                'confirmed'
+            ],
+        ], [
+            'password.regex' => 'The password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.',
+            'password.min' => 'The password must be at least 8 characters.',
+            'password.max' => 'The password may not be greater than 12 characters.',
+        ]);
+
+        $user = Auth::user();
+        $user->update([
+            'password' => Hash::make($request->password),
+            'require_password_change' => false,
+        ]);
+
+        return back()->with('success', 'Password changed successfully!');
     }
 
     // --- Password Reset (Existing) ---
