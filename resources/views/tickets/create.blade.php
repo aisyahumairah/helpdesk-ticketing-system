@@ -41,15 +41,6 @@
                             @endif
 
                             <div class="item form-group">
-                                <label class="col-form-label col-md-3 col-sm-3 label-align" for="title">Title <span
-                                        class="required">*</span></label>
-                                <div class="col-md-6 col-sm-6">
-                                    <input type="text" id="title" name="title" required="required"
-                                        class="form-control" value="{{ old('title') }}">
-                                </div>
-                            </div>
-
-                            <div class="item form-group">
                                 <label class="col-form-label col-md-3 col-sm-3 label-align" for="category">Category <span
                                         class="required">*</span></label>
                                 <div class="col-md-6 col-sm-6">
@@ -80,9 +71,18 @@
                             </div>
 
                             <div class="item form-group">
+                                <label class="col-form-label col-md-3 col-sm-3 label-align" for="title">Title <span
+                                        class="required">*</span></label>
+                                <div class="col-md-6 col-sm-6">
+                                    <input type="text" id="title" name="title" required="required"
+                                        class="form-control" value="{{ old('title') }}">
+                                </div>
+                            </div>
+
+                            <div class="item form-group">
                                 <label class="col-form-label col-md-3 col-sm-3 label-align" for="description">Description
                                     <span class="required">*</span></label>
-                                <div class="col-md-6 col-sm-6">
+                                <div class="col-md-9 col-sm-9">
                                     <textarea id="description" name="description" required="required" class="form-control" rows="5">{{ old('description') }}</textarea>
                                 </div>
                             </div>

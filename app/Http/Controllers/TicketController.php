@@ -7,11 +7,14 @@ use App\Models\Ticket;
 use App\Models\Code;
 use App\Models\UploadedFile;
 use App\Models\AuditTrail;
+use App\Models\TicketStatusHistory;
 use App\Notifications\TicketStatusUpdated;
 use App\Notifications\TicketAssigned;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Throwable;
 
 class TicketController extends Controller
 {
@@ -34,7 +37,7 @@ class TicketController extends Controller
     {
         $categories = Code::where('type', 'comp_type')->get();
         $urgencies = Code::where('type', 'urgency')->get();
-        
+
         $users = null;
         if (Auth::user()->hasAnyRole(['admin', 'it_support'])) {
             $users = \App\Models\User::all();
@@ -101,7 +104,7 @@ class TicketController extends Controller
             }
         }
 
-        \App\Models\AuditTrail::create([
+        AuditTrail::create([
             'user_id' => Auth::id(),
             'ticket_id' => $ticket->id,
             'event' => 'Create',
@@ -122,8 +125,15 @@ class TicketController extends Controller
         }
 
         $ticket->load([
-            'categoryCode', 'urgencyCode', 'statusCode', 'attachments', 'user', 'assignedTo', 
-            'auditTrails.user', 'replies.user', 'replies.attachments'
+            'categoryCode',
+            'urgencyCode',
+            'statusCode',
+            'attachments',
+            'user',
+            'assignedTo',
+            'auditTrails.user',
+            'replies.user',
+            'replies.attachments'
         ]);
 
         $supportUsers = \App\Models\User::role(['admin', 'it_support'])->get();
@@ -178,34 +188,39 @@ class TicketController extends Controller
         }
 
         $oldStatus = $ticket->status;
-        
-        $ticket->update([
-            'status' => 'CLOSED',
-            'resolved_at' => now(),
-            'resolved_by' => Auth::id(),
-        ]);
 
-        // Record status change
-        \App\Models\TicketStatusHistory::create([
-            'ticket_id' => $ticket->id,
-            'old_status' => $oldStatus,
-            'new_status' => 'CLOSED',
-            'changed_by' => Auth::id(),
-            'notes' => 'Ticket resolved by IT Support',
-        ]);
+        try {
+            $ticket->update([
+                'status' => 'CLOSE',
+                'resolved_at' => now(),
+                'resolved_by' => Auth::id(),
+            ]);
 
-        AuditTrail::create([
-            'user_id' => Auth::id(),
-            'ticket_id' => $ticket->id,
-            'event' => 'Resolve',
-            'details' => 'Ticket resolved by ' . Auth::user()->name,
-            'ip_address' => request()->ip(),
-        ]);
+            // Record status change
+            TicketStatusHistory::create([
+                'ticket_id' => $ticket->id,
+                'old_status' => $oldStatus,
+                'new_status' => 'CLOSE',
+                'changed_by' => Auth::id(),
+                'notes' => 'Ticket resolved by IT Support',
+            ]);
 
-        // Send Notification to user
-        $ticket->user->notify(new TicketStatusUpdated($ticket));
+                AuditTrail::create([
+                'user_id' => Auth::id(),
+                'ticket_id' => $ticket->id,
+                'event' => 'Resolve',
+                'details' => 'Ticket resolved by ' . Auth::user()->name,
+                'ip_address' => request()->ip(),
+            ]);
 
-        return redirect()->back()->with('success', 'Ticket marked as resolved. User will be notified to verify.');
+            // Send Notification to user
+            $ticket->user->notify(new TicketStatusUpdated($ticket));
+
+            return redirect()->back()->with('success', 'Ticket marked as resolved. User will be notified to verify.');
+        } catch (Throwable $e) {
+            Log::error('Failed to resolve ticket: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to resolve ticket: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -217,41 +232,46 @@ class TicketController extends Controller
             abort(403, 'Only the ticket creator can verify resolution.');
         }
 
-        if ($ticket->status !== 'CLOSED') {
-            return redirect()->back()->with('error', 'Ticket must be in CLOSED status to verify.');
+        if ($ticket->status !== 'CLOSE') {
+            return redirect()->back()->with('error', 'Ticket must be in CLOSE status to verify.');
         }
 
         $oldStatus = $ticket->status;
-        
-        $ticket->update([
-            'status' => 'DONE',
-            'verified_at' => now(),
-            'verified_by' => Auth::id(),
-        ]);
 
-        // Record status change
-        \App\Models\TicketStatusHistory::create([
-            'ticket_id' => $ticket->id,
-            'old_status' => $oldStatus,
-            'new_status' => 'DONE',
-            'changed_by' => Auth::id(),
-            'notes' => 'Ticket verified as resolved by user',
-        ]);
+        try {
+            $ticket->update([
+                'status' => 'DONE',
+                'verified_at' => now(),
+                'verified_by' => Auth::id(),
+            ]);
 
-        AuditTrail::create([
-            'user_id' => Auth::id(),
-            'ticket_id' => $ticket->id,
-            'event' => 'Verify',
-            'details' => 'Ticket verified as resolved by ' . Auth::user()->name,
-            'ip_address' => request()->ip(),
-        ]);
+            // Record status change
+            TicketStatusHistory::create([
+                'ticket_id' => $ticket->id,
+                'old_status' => $oldStatus,
+                'new_status' => 'DONE',
+                'changed_by' => Auth::id(),
+                'notes' => 'Ticket verified as resolved by user',
+            ]);
 
-        // Notify IT Support
-        if ($ticket->assignedTo) {
-            $ticket->assignedTo->notify(new TicketStatusUpdated($ticket));
+            AuditTrail::create([
+                'user_id' => Auth::id(),
+                'ticket_id' => $ticket->id,
+                'event' => 'Verify',
+                'details' => 'Ticket verified as resolved by ' . Auth::user()->name,
+                'ip_address' => request()->ip(),
+            ]);
+
+            // Notify IT Support
+            if ($ticket->assignedTo) {
+                $ticket->assignedTo->notify(new TicketStatusUpdated($ticket));
+            }
+
+            return response()->json(['message' => 'Thank you for verifying the resolution!'], 200);
+        } catch (Throwable $e) {
+            Log::error('Failed to verify ticket: ' . $e->getMessage());
+            return response()->json(['error' => 'Failed to verify ticket: ' . $e->getMessage()], 500);
         }
-
-        return redirect()->back()->with('success', 'Thank you for verifying the resolution!');
     }
 
     /**
@@ -263,40 +283,45 @@ class TicketController extends Controller
             abort(403, 'Only the ticket creator can reopen the ticket.');
         }
 
-        if (!in_array($ticket->status, ['CLOSED', 'DONE'])) {
+        if (!in_array($ticket->status, ['CLOSE', 'DONE'])) {
             return redirect()->back()->with('error', 'Only closed or done tickets can be reopened.');
         }
 
         $oldStatus = $ticket->status;
-        
-        $ticket->update([
-            'status' => 'REOPEN',
-            'reopen_count' => $ticket->reopen_count + 1,
-        ]);
 
-        // Record status change
-        \App\Models\TicketStatusHistory::create([
-            'ticket_id' => $ticket->id,
-            'old_status' => $oldStatus,
-            'new_status' => 'REOPEN',
-            'changed_by' => Auth::id(),
-            'notes' => 'Ticket reopened by user (Reopen #' . $ticket->reopen_count . ')',
-        ]);
+        try {
+            $ticket->update([
+                'status' => 'REOPEN',
+                'reopen_count' => $ticket->reopen_count + 1,
+            ]);
 
-        AuditTrail::create([
-            'user_id' => Auth::id(),
-            'ticket_id' => $ticket->id,
-            'event' => 'Reopen',
-            'details' => 'Ticket reopened by ' . Auth::user()->name . ' (Reopen #' . $ticket->reopen_count . ')',
-            'ip_address' => request()->ip(),
-        ]);
+            // Record status change
+            TicketStatusHistory::create([
+                'ticket_id' => $ticket->id,
+                'old_status' => $oldStatus,
+                'new_status' => 'REOPEN',
+                'changed_by' => Auth::id(),
+                'notes' => 'Ticket reopened by user (Reopen #' . $ticket->reopen_count . ')',
+            ]);
 
-        // Notify assigned IT Support
-        if ($ticket->assignedTo) {
-            $ticket->assignedTo->notify(new TicketStatusUpdated($ticket));
+            AuditTrail::create([
+                'user_id' => Auth::id(),
+                'ticket_id' => $ticket->id,
+                'event' => 'Reopen',
+                'details' => 'Ticket reopened by ' . Auth::user()->name . ' (Reopen #' . $ticket->reopen_count . ')',
+                'ip_address' => request()->ip(),
+            ]);
+
+            // Notify assigned IT Support
+            if ($ticket->assignedTo) {
+                $ticket->assignedTo->notify(new TicketStatusUpdated($ticket));
+            }
+
+            return response()->json(['message' => 'Ticket has been reopened. IT Support will be notified.'], 200);
+        } catch (Throwable $e) {
+            Log::error('Failed to reopen ticket: ' . $e->getMessage());
+            return response()->json(['error' => 'Failed to reopen ticket: ' . $e->getMessage()], 500);
         }
-
-        return redirect()->back()->with('success', 'Ticket has been reopened. IT Support will be notified.');
     }
 
     /**
@@ -375,7 +400,7 @@ class TicketController extends Controller
 
         $ticket->update([
             'assigned_to' => $newAssignee,
-            'status' => 'PEND', 
+            'status' => 'PEND',
             'escalation_level' => $ticket->escalation_level + 1,
         ]);
 
@@ -389,7 +414,7 @@ class TicketController extends Controller
 
         // Send Notification
         $ticket->user->notify(new TicketStatusUpdated($ticket));
-        
+
         // Notify new assignee
         $newAssigneeUser = \App\Models\User::find($newAssignee);
         $newAssigneeUser->notify(new TicketAssigned($ticket));

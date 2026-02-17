@@ -45,7 +45,7 @@
                                 </thead>
                                 <tbody>
                                     @foreach ($tickets as $ticket)
-                                        <tr>
+                                        <tr class="data-row" id="row-{{ $loop->iteration }}">
                                             <td><strong>{{ $ticket->ticket_id }}</strong></td>
                                             <td>{{ $ticket->title }}</td>
                                             <td>{{ $ticket->categoryCode->name ?? $ticket->category }}</td>
@@ -74,33 +74,25 @@
                                                 <span
                                                     class="badge {{ $statusClass }}">{{ $ticket->statusCode->name ?? $ticket->status }}</span>
                                             </td>
-                                            <td>{{ $ticket->created_at->format('d M Y, H:i') }}</td>
+                                            <td>{{ $ticket->created_at->format('d M Y, H:i:s') }}</td>
                                             <td>
-                                                <div class="btn-group btn-group-sm">
-                                                    <a href="{{ route('tickets.show', $ticket) }}"
-                                                        class="btn btn-info text-white" title="View Details"><i
-                                                            class="fa fa-eye"></i></a>
+                                                <a href="{{ route('tickets.show', $ticket) }}"
+                                                    class="btn btn-info bg-blue text-white" title="View Details">
+                                                    <i class="fa fa-eye"></i>
+                                                </a>
+                                                @if ($ticket->status == 'CLOSE' && $ticket->user_id == Auth::id())
+                                                    <a href="{{ route('tickets.verify', $ticket->id) }}"
+                                                        class="btn btn-success bg-green text-white btn-verify"
+                                                        title="Verify Resolution">
+                                                        <i class="fa fa-check"></i>
+                                                    </a>
+                                                    <a href="{{ route('tickets.reopen', $ticket->id) }}"
+                                                        class="btn btn-danger bg-red text-white btn-reopen"
+                                                        title="Reopen Ticket">
+                                                        <i class="fa fa-undo"></i>
+                                                    </a>
+                                                @endif
 
-                                                    @if (($ticket->status == 'CLOSE' || $ticket->status == 'CLOSED') && $ticket->user_id == Auth::id())
-                                                        <button type="button" class="btn btn-success text-white btn-verify"
-                                                            data-id="{{ $ticket->id }}" title="Verify Resolution"><i
-                                                                class="fa fa-check"></i></button>
-                                                        <button type="button" class="btn btn-danger text-white btn-reopen"
-                                                            data-id="{{ $ticket->id }}" title="Reopen Ticket"><i
-                                                                class="fa fa-undo"></i></button>
-                                                        {{-- Forms remain the same --}}
-                                                        <form id="form-verify-{{ $ticket->id }}"
-                                                            action="{{ route('tickets.verify', $ticket) }}" method="POST"
-                                                            style="display:none;">
-                                                            @csrf
-                                                        </form>
-                                                        <form id="form-reopen-{{ $ticket->id }}"
-                                                            action="{{ route('tickets.reopen', $ticket) }}" method="POST"
-                                                            style="display:none;">
-                                                            @csrf
-                                                        </form>
-                                                    @endif
-                                                </div>
                                             </td>
                                         </tr>
                                     @endforeach
@@ -115,49 +107,189 @@
 
     @section('script')
         <script>
-            $(document).ready(function() {
-                $('#ticketsTable').DataTable({
+            // Use a function to ensure code runs after jQuery is ready
+            function initIndexPage() {
+                if (typeof $ === 'undefined' || typeof $.fn.DataTable === 'undefined') {
+                    setTimeout(initIndexPage, 100);
+                    return;
+                }
+
+                const table = $('#ticketsTable').DataTable({
                     responsive: true,
                     order: [
                         [5, 'desc']
                     ]
                 });
 
-                // Verify Confirmation
-                $('.btn-verify').on('click', function() {
-                    const id = $(this).data('id');
-                    Swal.fire({
-                        title: 'Verify Resolution?',
-                        text: "Are you sure you are satisfied with the solution provided?",
-                        icon: 'question',
-                        showCancelButton: true,
-                        confirmButtonColor: '#26B99A',
-                        cancelButtonColor: '#d33',
-                        confirmButtonText: 'Yes, Verify!'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            $('#form-verify-' + id).submit();
-                        }
+                // Handle Verify button click with SweetAlert2 confirmation
+                $(function() {
+                    $(document).on('click', '.btn-verify', function(e) {
+                        e.preventDefault();
+
+                        // Fetch the assign URL
+                        var assignUrl = $(this).attr("href");
+
+                        // Get the ID of the row that will be removed
+                        var rowId = $(this).closest('.data-row').attr('id');
+
+                        // Configure SweetAlert2 with Bootstrap buttons
+                        const swalWithBootstrapButtons = Swal.mixin({
+                            customClass: {
+                                confirmButton: "ms-3 btn btn-success",
+                                cancelButton: "btn btn-danger ms-3"
+                            },
+                            buttonsStyling: false
+                        });
+
+                        // Display confirmation dialog
+                        swalWithBootstrapButtons.fire({
+                            title: "Verify Ticket",
+                            text: "Are you sure you are satisfied with the solution provided?",
+                            icon: "warning",
+                            showCancelButton: true,
+                            confirmButtonText: "Yes, Verify!",
+                            cancelButtonText: "No!",
+                            reverseButtons: true
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                // Perform AJAX request for assigning
+                                $.ajax({
+                                    url: assignUrl,
+                                    type: 'PATCH',
+                                    headers: {
+                                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr(
+                                            'content')
+                                    },
+                                    success: function(response) {
+                                        console.log(response); // Log the response
+
+                                        // Show success message
+                                        Swal.fire("Success!",
+                                            "The ticket has been successfully verified.",
+                                            "success");
+
+                                        // Remove the deleted row from the DOM
+                                        $('#' + rowId).fadeOut(300, function() {
+                                            $(this).remove();
+
+                                            setTimeout(function() {
+                                                location.reload();
+                                            }, 300); // 1000 ms = 1 second delay
+                                        });
+
+                                        // Optionally reload the page or update UI
+                                        // setTimeout(function() {
+                                        //     location.reload();
+                                        // }, 1000); // Uncomment if you want to reload
+                                    },
+                                    error: function(xhr, status, error) {
+                                        console.log("Error:", error); // Log the error
+
+                                        // Display error message
+                                        Swal.fire("Error!",
+                                            "The ticket verification failed. Please try again.",
+                                            "error"
+                                        );
+                                    }
+                                });
+                            } else if (result.dismiss === Swal.DismissReason.cancel) {
+                                swalWithBootstrapButtons.fire({
+                                    title: "Cancelled",
+                                    text: "Ticket verification cancelled.",
+                                    icon: "error"
+                                });
+                            }
+                        });
                     });
                 });
 
-                // Reopen Confirmation
-                $('.btn-reopen').on('click', function() {
-                    const id = $(this).data('id');
-                    Swal.fire({
-                        title: 'Reopen Ticket?',
-                        text: "Are you sure you want to reopen this ticket? Use this if your issue hasn't been resolved.",
-                        icon: 'warning',
-                        showCancelButton: true,
-                        confirmButtonColor: '#d9534f',
-                        cancelButtonColor: '#999',
-                        confirmButtonText: 'Yes, Reopen!'
-                    }).then((result) => {
-                        if (result.isConfirmed) {
-                            $('#form-reopen-' + id).submit();
-                        }
+                // Handle Reopen button click with SweetAlert2 confirmation
+                $(function() {
+                    $(document).on('click', '.btn-reopen', function(e) {
+                        e.preventDefault();
+
+                        // Fetch the assign URL
+                        var assignUrl = $(this).attr("href");
+
+                        // Get the ID of the row that will be removed
+                        var rowId = $(this).closest('.data-row').attr('id');
+
+                        // Configure SweetAlert2 with Bootstrap buttons
+                        const swalWithBootstrapButtons = Swal.mixin({
+                            customClass: {
+                                confirmButton: "ms-3 btn btn-success",
+                                cancelButton: "btn btn-danger ms-3"
+                            },
+                            buttonsStyling: false
+                        });
+
+                        // Display confirmation dialog
+                        swalWithBootstrapButtons.fire({
+                            title: 'Reopen Ticket?',
+                            text: "Are you sure you want to reopen this ticket? Use this if your issue hasn't been resolved.",
+                            icon: "warning",
+                            showCancelButton: true,
+                            confirmButtonText: "Yes, Reopen!",
+                            cancelButtonText: "No!",
+                            reverseButtons: true
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                // Perform AJAX request for assigning
+                                $.ajax({
+                                    url: assignUrl,
+                                    type: 'PATCH',
+                                    headers: {
+                                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr(
+                                            'content')
+                                    },
+                                    success: function(response) {
+                                        console.log(response); // Log the response
+
+                                        // Show success message
+                                        Swal.fire("Success!",
+                                            "The ticket has been successfully reopened.",
+                                            "success");
+
+                                        // Remove the deleted row from the DOM
+                                        $('#' + rowId).fadeOut(300, function() {
+                                            $(this).remove();
+
+                                            setTimeout(function() {
+                                                location.reload();
+                                            }, 300); // 1000 ms = 1 second delay
+                                        });
+
+                                        // Optionally reload the page or update UI
+                                        // setTimeout(function() {
+                                        //     location.reload();
+                                        // }, 1000); // Uncomment if you want to reload
+                                    },
+                                    error: function(xhr, status, error) {
+                                        console.log("Error:", error); // Log the error
+
+                                        // Display error message
+                                        Swal.fire("Error!",
+                                            "The ticket reopening failed. Please try again.",
+                                            "error"
+                                        );
+                                    }
+                                });
+                            } else if (result.dismiss === Swal.DismissReason.cancel) {
+                                swalWithBootstrapButtons.fire({
+                                    title: "Cancelled",
+                                    text: "Ticket reopening cancelled.",
+                                    icon: "error"
+                                });
+                            }
+                        });
                     });
                 });
+
+
+            }
+
+            $(document).ready(function() {
+                initIndexPage();
             });
         </script>
     @endsection

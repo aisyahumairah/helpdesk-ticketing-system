@@ -45,8 +45,8 @@ Route::middleware('auth')->group(function () {
     // Ticket Routes
     Route::resource('tickets', TicketController::class);
     Route::post('/tickets/{ticket}/reply', [ReplyController::class, 'store'])->name('tickets.reply');
-    Route::post('/tickets/{ticket}/verify', [TicketController::class, 'verify'])->name('tickets.verify');
-    Route::post('/tickets/{ticket}/reopen', [TicketController::class, 'reopen'])->name('tickets.reopen');
+    Route::patch('/tickets/{ticket}/verify', [TicketController::class, 'verify'])->name('tickets.verify');
+    Route::patch('/tickets/{ticket}/reopen', [TicketController::class, 'reopen'])->name('tickets.reopen');
 
     // IT Support Routes
     Route::middleware(['role:admin|it_support'])->group(function () {
@@ -63,21 +63,21 @@ Route::middleware('auth')->group(function () {
     // Admin Routes
     Route::middleware(['role:admin'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
-        
+
         // User Management
         Route::resource('users', AdminController::class);
         Route::post('/users/{user}/reset-password', [AdminController::class, 'resetUserPassword'])->name('users.reset_password');
         Route::post('/users/{user}/toggle-status', [AdminController::class, 'toggleUserStatus'])->name('users.toggle_status');
-        
+
         // Roles & Permissions
         Route::resource('roles', RoleController::class);
         Route::post('/roles/{role}/attach-permissions', [RoleController::class, 'attachPermissions'])->name('roles.attach_permissions');
         Route::resource('permissions', PermissionController::class);
-        
+
         // Settings
         Route::get('/settings', [AdminController::class, 'settings'])->name('settings');
         Route::post('/settings', [AdminController::class, 'updateSettings'])->name('settings.update');
-        
+
         // Mail Templates
         Route::resource('mail-templates', MailTemplateController::class)->names('mail_templates');
         Route::post('/mail-templates/{mailTemplate}/preview', [MailTemplateController::class, 'preview'])->name('mail_templates.preview');

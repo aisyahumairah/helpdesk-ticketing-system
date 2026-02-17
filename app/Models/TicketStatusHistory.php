@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class TicketStatusHistory extends Model
 {
+    protected $table = 'ticket_status_history';
+
     protected $fillable = [
         'ticket_id',
         'old_status',

@@ -9,6 +9,9 @@
 
     <title>{{ config('app.name') }}</title>
 
+    <!-- CSRF Token -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
     <!-- jQuery (Required for Select2/Gentelella) -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 

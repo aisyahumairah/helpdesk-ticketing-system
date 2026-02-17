@@ -156,7 +156,8 @@
                                     @csrf
                                     <button type="button" id="btn-resolve"
                                         class="btn btn-success text-white btn-block w-100">Mark as
-                                        Resolved</button>
+                                        Resolved
+                                    </button>
                                 </form>
                                 <form id="form-escalate" action="{{ route('tickets.escalate', $ticket) }}" method="POST"
                                     class="flex-grow-1">
