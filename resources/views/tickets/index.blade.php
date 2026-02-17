@@ -49,9 +49,9 @@
                                     <td>
                                         @php
                                             $urgencyClass = match($ticket->urgency) {
-                                                'HIGH', 'CRIT' => 'badge-danger',
-                                                'MED' => 'badge-warning',
-                                                default => 'badge-info'
+                                                'HIGH', 'CRIT' => 'bg-danger',
+                                                'MED' => 'bg-warning text-dark',
+                                                default => 'bg-info'
                                             };
                                         @endphp
                                         <span class="badge {{ $urgencyClass }}">{{ $ticket->urgencyCode->name ?? $ticket->urgency }}</span>
@@ -59,11 +59,11 @@
                                     <td>
                                         @php
                                             $statusClass = match($ticket->status) {
-                                                'NEW' => 'badge-primary',
-                                                'PEND' => 'badge-warning',
-                                                'CLOSE', 'DONE' => 'badge-success',
-                                                'REOPEN' => 'badge-dark',
-                                                default => 'badge-info'
+                                                'NEW' => 'bg-primary',
+                                                'PEND' => 'bg-warning text-dark',
+                                                'CLOSE', 'DONE' => 'bg-success',
+                                                'REOPEN' => 'bg-dark',
+                                                default => 'bg-info'
                                             };
                                         @endphp
                                         <span class="badge {{ $statusClass }}">{{ $ticket->statusCode->name ?? $ticket->status }}</span>

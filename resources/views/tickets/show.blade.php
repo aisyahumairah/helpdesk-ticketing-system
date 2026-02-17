@@ -62,7 +62,7 @@
                                     <span>
                                         <strong>{{ $reply->user->name }}</strong>
                                         @if($reply->user->hasRole('it_support') || $reply->user->hasRole('admin'))
-                                            <span class="badge badge-info ms-2">IT Support</span>
+                                            <span class="badge bg-info ms-2">IT Support</span>
                                         @endif
                                     </span>
                                     <span class="text-muted"><small>{{ $reply->created_at->format('d M Y, H:i') }}</small></span>
@@ -123,10 +123,10 @@
                 <div class="x_content">
                     <ul class="list-unstyled">
                         <li class="mb-2"><strong>Status:</strong> 
-                            <span class="badge {{ $ticket->status == 'NEW' ? 'badge-primary' : 'badge-info' }}">{{ $ticket->statusCode->name ?? $ticket->status }}</span>
+                            <span class="badge {{ $ticket->status == 'NEW' ? 'bg-primary' : 'bg-info' }}">{{ $ticket->statusCode->name ?? $ticket->status }}</span>
                         </li>
                         <li class="mb-2"><strong>Urgency:</strong> 
-                            <span class="badge {{ $ticket->urgency == 'HIGH' ? 'badge-danger' : 'badge-info' }}">{{ $ticket->urgencyCode->name ?? $ticket->urgency }}</span>
+                            <span class="badge {{ $ticket->urgency == 'HIGH' ? 'bg-danger' : 'bg-info' }}">{{ $ticket->urgencyCode->name ?? $ticket->urgency }}</span>
                         </li>
                         <li class="mb-2"><strong>Category:</strong> {{ $ticket->categoryCode->name ?? $ticket->category }}</li>
                         <li class="mb-2"><strong>Created By:</strong> {{ $ticket->user->name }}</li>
