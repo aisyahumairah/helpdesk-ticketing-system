@@ -110,87 +110,6 @@
                                                         data-bs-target="#modal-audit-{{ $trail->id }}">
                                                         <i class="fa fa-search-plus"></i> View Changes
                                                     </button>
-
-                                                    <!-- Modal for Changes -->
-                                                    <div class="modal fade" id="modal-audit-{{ $trail->id }}"
-                                                        tabindex="-1" aria-hidden="true">
-                                                        <div class="modal-dialog">
-                                                            <div class="modal-content">
-                                                                <div class="modal-header">
-                                                                    <h5 class="modal-title">Event Details:
-                                                                        {{ $trail->event }}</h5>
-                                                                    <button type="button" class="btn-close"
-                                                                        data-bs-dismiss="modal" aria-label="Close"></button>
-                                                                </div>
-                                                                <div class="modal-body text-start">
-                                                                    <p><strong>Description:</strong>
-                                                                        {{ $trail->details['message'] ?? 'N/A' }}</p>
-                                                                    <hr>
-                                                                    @if (isset($trail->details['data']))
-                                                                        <h6>Created Data:</h6>
-                                                                        <div class="table-responsive">
-                                                                            <table class="table table-sm table-bordered">
-                                                                                <thead class="bg-light">
-                                                                                    <tr>
-                                                                                        <th>Field</th>
-                                                                                        <th>Value</th>
-                                                                                    </tr>
-                                                                                </thead>
-                                                                                <tbody>
-                                                                                    @foreach ($trail->details['data'] as $field => $value)
-                                                                                        <tr>
-                                                                                            <td class="fw-bold">
-                                                                                                {{ ucwords(str_replace('_', ' ', $field)) }}
-                                                                                            </td>
-                                                                                            <td>{{ is_array($value) ? json_encode($value) : $value ?? 'N/A' }}
-                                                                                            </td>
-                                                                                        </tr>
-                                                                                    @endforeach
-                                                                                </tbody>
-                                                                            </table>
-                                                                        </div>
-                                                                    @endif
-
-                                                                    @if (isset($trail->details['changes']) && count($trail->details['changes']) > 0)
-                                                                        <hr>
-                                                                        <h6>Field Changes:</h6>
-                                                                        <div class="table-responsive">
-                                                                            <table class="table table-sm table-bordered">
-                                                                                <thead class="bg-light">
-                                                                                    <tr>
-                                                                                        <th>Field</th>
-                                                                                        <th>Old Value</th>
-                                                                                        <th>New Value</th>
-                                                                                    </tr>
-                                                                                </thead>
-                                                                                <tbody>
-                                                                                    @foreach ($trail->details['changes'] as $field => $change)
-                                                                                        <tr>
-                                                                                            <td class="fw-bold">
-                                                                                                {{ ucwords(str_replace('_', ' ', $field)) }}
-                                                                                            </td>
-                                                                                            <td class="text-danger">
-                                                                                                {{ is_array($change['old']) ? json_encode($change['old']) : $change['old'] ?? 'N/A' }}
-                                                                                            </td>
-                                                                                            <td class="text-success">
-                                                                                                {{ is_array($change['new']) ? json_encode($change['new']) : $change['new'] ?? 'N/A' }}
-                                                                                            </td>
-                                                                                        </tr>
-                                                                                    @endforeach
-                                                                                </tbody>
-                                                                            </table>
-                                                                        </div>
-                                                                    @endif
-                                                                </div>
-                                                                <div class="modal-footer">
-                                                                    <button type="button" class="btn btn-secondary"
-                                                                        data-bs-dismiss="modal">
-                                                                        Close
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
                                                 @endif
                                             @else
                                                 {{ $trail->details }}
@@ -214,6 +133,84 @@
             </div>
         </div>
     </div>
+
+    <!-- Modals Section -->
+    @foreach ($trails as $trail)
+        @if (is_array($trail->details) &&
+                ((isset($trail->details['changes']) && count($trail->details['changes']) > 0) ||
+                    isset($trail->details['data'])))
+            <div class="modal fade" id="modal-audit-{{ $trail->id }}" tabindex="-1" aria-hidden="true"
+                style="color: #333;">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Event Details: {{ $trail->event }}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body text-start">
+                            <p><strong>Description:</strong> {{ $trail->details['message'] ?? 'N/A' }}</p>
+
+                            @if (isset($trail->details['data']))
+                                <hr>
+                                <h6>Created Data:</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-bordered">
+                                        <thead class="bg-light">
+                                            <tr>
+                                                <th>Field</th>
+                                                <th>Value</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach ($trail->details['data'] as $field => $value)
+                                                <tr>
+                                                    <td class="fw-bold">{{ ucwords(str_replace('_', ' ', $field)) }}</td>
+                                                    <td>{{ is_array($value) ? json_encode($value) : $value ?? 'N/A' }}
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            @endif
+
+                            @if (isset($trail->details['changes']) && count($trail->details['changes']) > 0)
+                                <hr>
+                                <h6>Field Changes:</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-bordered">
+                                        <thead class="bg-light">
+                                            <tr>
+                                                <th>Field</th>
+                                                <th>Old Value</th>
+                                                <th>New Value</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach ($trail->details['changes'] as $field => $change)
+                                                <tr>
+                                                    <td class="fw-bold">{{ ucwords(str_replace('_', ' ', $field)) }}</td>
+                                                    <td class="text-danger">
+                                                        {{ is_array($change['old']) ? json_encode($change['old']) : $change['old'] ?? 'N/A' }}
+                                                    </td>
+                                                    <td class="text-success">
+                                                        {{ is_array($change['new']) ? json_encode($change['new']) : $change['new'] ?? 'N/A' }}
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            @endif
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
+    @endforeach
 @endsection
 
 @section('script')

@@ -1,4 +1,5 @@
 import './bootstrap';
+import 'bootstrap';
 
 // Import jQuery and expose it
 import $ from 'jquery';
