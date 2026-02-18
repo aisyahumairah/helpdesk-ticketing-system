@@ -204,7 +204,13 @@
                                         <span
                                             class="pull-right text-muted"><small>{{ $trail->created_at->format('d M Y, H:i') }}</small></span>
                                     </div>
-                                    <div class="message">{{ $trail->details }}</div>
+                                    <div class="message">
+                                        @if (is_array($trail->details))
+                                            {{ $trail->details['message'] ?? $trail->event }}
+                                        @else
+                                            {{ $trail->details }}
+                                        @endif
+                                    </div>
                                 </li>
                             @endforeach
                         </ul>

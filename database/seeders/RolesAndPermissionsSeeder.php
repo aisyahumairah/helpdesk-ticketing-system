@@ -26,41 +26,41 @@ class RolesAndPermissionsSeeder extends Seeder
             'ticket.assign',
             'ticket.reassign',
             'ticket.resolve',
-            'ticket.verify',
-            'ticket.reopen',
+            // 'ticket.verify',
+            // 'ticket.reopen',
             'ticket.escalate',
-            
+
             // User permissions
             'user.create',
             'user.read',
             'user.update',
             'user.delete',
             'user.reset_password',
-            'user.toggle_status',
-            
+            // 'user.toggle_status',
+
             // Role permissions
             'role.create',
             'role.read',
             'role.update',
             'role.delete',
             'role.attach_permissions',
-            
+
             // Permission permissions
             'permission.create',
             'permission.read',
             'permission.update',
             'permission.delete',
-            
+
             // Settings permissions
             'settings.read',
             'settings.update',
-            
+
             // Audit Trail permissions
             'audit_trail.read',
-            
+
             // Reports permissions
             'report.read',
-            
+
             // Mail Template permissions
             'mail_template.create',
             'mail_template.read',
@@ -73,7 +73,7 @@ class RolesAndPermissionsSeeder extends Seeder
         }
 
         // Create roles and assign permissions
-        
+
         // Admin role - has all permissions
         $adminRole = Role::create(['name' => 'admin']);
         $adminRole->givePermissionTo(Permission::all());
