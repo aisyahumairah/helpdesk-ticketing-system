@@ -25,14 +25,15 @@
                             @if ($users)
                                 <div class="item form-group">
                                     <label class="col-form-label col-md-3 col-sm-3 label-align" for="user_id">Requestor
-                                        (User) <span class="required">*</span></label>
+                                        (User)</label>
                                     <div class="col-md-6 col-sm-6">
-                                        <select name="user_id" id="user_id" class="form-control select2" required>
-                                            <option value="">Select User</option>
-                                            @foreach ($users as $user)
-                                                <option value="{{ $user->id }}"
-                                                    {{ old('user_id') == $user->id ? 'selected' : '' }}>{{ $user->name }}
-                                                    ({{ $user->email }})
+                                        <select name="user_id" id="user_id" class="form-control select2">
+                                            <option value="">Select User (Default: Self)</option>
+                                            @foreach ($users as $u)
+                                                <option value="{{ $u->id }}"
+                                                    {{ old('user_id', Auth::id()) == $u->id ? 'selected' : '' }}>
+                                                    {{ $u->name }}
+                                                    ({{ $u->email }})
                                                 </option>
                                             @endforeach
                                         </select>
@@ -44,7 +45,7 @@
                                 <label class="col-form-label col-md-3 col-sm-3 label-align" for="category">Category <span
                                         class="required">*</span></label>
                                 <div class="col-md-6 col-sm-6">
-                                    <select name="category" id="category" class="form-control select2" required>
+                                    <select name="category" id="category" class="form-control select2">
                                         <option value="">Select Category</option>
                                         @foreach ($categories as $category)
                                             <option value="{{ $category->code }}"
@@ -59,7 +60,7 @@
                                 <label class="col-form-label col-md-3 col-sm-3 label-align" for="urgency">Urgency <span
                                         class="required">*</span></label>
                                 <div class="col-md-6 col-sm-6">
-                                    <select name="urgency" id="urgency" class="form-control select2" required>
+                                    <select name="urgency" id="urgency" class="form-control select2">
                                         <option value="">Select Urgency</option>
                                         @foreach ($urgencies as $urgency)
                                             <option value="{{ $urgency->code }}"
@@ -74,8 +75,8 @@
                                 <label class="col-form-label col-md-3 col-sm-3 label-align" for="title">Title <span
                                         class="required">*</span></label>
                                 <div class="col-md-6 col-sm-6">
-                                    <input type="text" id="title" name="title" required="required"
-                                        class="form-control" value="{{ old('title') }}">
+                                    <input type="text" id="title" name="title" class="form-control"
+                                        value="{{ old('title') }}">
                                 </div>
                             </div>
 
@@ -83,7 +84,7 @@
                                 <label class="col-form-label col-md-3 col-sm-3 label-align" for="description">Description
                                     <span class="required">*</span></label>
                                 <div class="col-md-9 col-sm-9">
-                                    <textarea id="description" name="description" required="required" class="form-control" rows="5">{{ old('description') }}</textarea>
+                                    <textarea id="description" name="description" class="form-control" rows="5">{{ old('description') }}</textarea>
                                 </div>
                             </div>
 

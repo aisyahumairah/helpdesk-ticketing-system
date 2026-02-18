@@ -112,6 +112,15 @@
         @if (session('warning'))
             showWarning("{{ session('warning') }}");
         @endif
+
+        @if ($errors->any())
+            Swal.fire({
+                icon: 'error',
+                title: 'Validation Error',
+                html: `{!! implode('<br>', $errors->all()) !!}`,
+                confirmButtonColor: '#E74C3C'
+            });
+        @endif
     </script>
 </body>
 

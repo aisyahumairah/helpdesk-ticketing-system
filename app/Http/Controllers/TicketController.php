@@ -51,6 +51,8 @@ class TicketController extends Controller
      */
     public function store(Request $request)
     {
+        $user = Auth::user();
+
         $rules = [
             'title' => 'required|string|max:255',
             'category' => 'required|exists:codes,code',
@@ -60,65 +62,71 @@ class TicketController extends Controller
         ];
 
         if (Auth::user()->hasAnyRole(['admin', 'it_support'])) {
-            $rules['user_id'] = 'required|exists:users,id';
+            $rules['user_id'] = 'nullable|exists:users,id';
         }
 
         $request->validate($rules);
 
-        // Generate Ticket ID: ID00001/YYYY
-        $year = date('Y');
-        $lastTicket = Ticket::whereYear('created_at', $year)
-            ->orderBy('id', 'desc')
-            ->first();
+        try {
+            // Generate Ticket ID: ID00001/YYYY
+            $year = date('Y');
+            $lastTicket = Ticket::whereYear('created_at', $year)
+                ->orderBy('id', 'desc')
+                ->first();
 
-        $sequence = 1;
-        if ($lastTicket) {
-            $ticketIdParts = explode('/', $lastTicket->ticket_id);
-            if (count($ticketIdParts) > 0) {
-                // Strip "ID" and convert to int
-                $lastIdStr = str_replace('ID', '', $ticketIdParts[0]);
-                $lastSequence = (int)$lastIdStr;
-                $sequence = $lastSequence + 1;
+            $sequence = 1;
+            if ($lastTicket) {
+                $ticketIdParts = explode('/', $lastTicket->ticket_id);
+                if (count($ticketIdParts) > 0) {
+                    // Strip "ID" and convert to int
+                    $lastIdStr = str_replace('ID', '', $ticketIdParts[0]);
+                    $lastSequence = (int)$lastIdStr;
+                    $sequence = $lastSequence + 1;
+                }
             }
-        }
-        $ticketId = 'ID' . str_pad($sequence, 5, '0', STR_PAD_LEFT) . '/' . $year;
+            $ticketId = 'ID' . str_pad($sequence, 5, '0', STR_PAD_LEFT) . '/' . $year;
 
-        $ticket = Ticket::create([
-            'ticket_id' => $ticketId,
-            'title' => $request->title,
-            'description' => $request->description,
-            'category' => $request->category,
-            'urgency' => $request->urgency,
-            'status' => 'NEW',
-            'user_id' => $request->user_id ?? Auth::id(),
-        ]);
+            $ticket = Ticket::create([
+                'ticket_id' => $ticketId,
+                'title' => $request->title,
+                'description' => $request->description,
+                'category' => $request->category,
+                'urgency' => $request->urgency,
+                'status' => 'NEW',
+                'user_id' => $request->user_id ?: $user->id,
+            ]);
 
-        if ($request->hasFile('attachments')) {
-            foreach ($request->file('attachments') as $file) {
-                $path = $file->store('attachments/' . $ticketId, 'public');
-                $ticket->attachments()->create([
-                    'filename' => $file->getClientOriginalName(),
-                    'filepath' => $path,
-                    'filetype' => $file->getClientMimeType(),
-                ]);
+            if ($request->hasFile('attachments')) {
+                foreach ($request->file('attachments') as $file) {
+                    $path = $file->store('attachments/' . $ticketId, 'public');
+                    $ticket->attachments()->create([
+                        'filename' => $file->getClientOriginalName(),
+                        'filepath' => $path,
+                        'filetype' => $file->getClientMimeType(),
+                    ]);
+                }
             }
+
+            AuditTrail::create([
+                'user_id' => Auth::id(),
+                'ticket_id' => $ticket->id,
+                'event' => 'Create',
+                'details' => [
+                    'message' => 'Ticket created by ' . Auth::user()->name,
+                    'data' => [
+                        'title' => $ticket->title,
+                        'category' => $ticket->category,
+                        'urgency' => $ticket->urgency,
+                        'status' => $ticket->status,
+                    ]
+                ],
+                'ip_address' => request()->ip(),
+            ]);
+        } catch (Throwable $th) {
+            Log::error('Error creating ticket: ' . $th->getMessage());
+            return redirect()->back()->with('error', 'Failed to create ticket. Please try again.');
         }
 
-        AuditTrail::create([
-            'user_id' => Auth::id(),
-            'ticket_id' => $ticket->id,
-            'event' => 'Create',
-            'details' => [
-                'message' => 'Ticket created by ' . Auth::user()->name,
-                'data' => [
-                    'title' => $ticket->title,
-                    'category' => $ticket->category,
-                    'urgency' => $ticket->urgency,
-                    'status' => $ticket->status,
-                ]
-            ],
-            'ip_address' => request()->ip(),
-        ]);
 
         return redirect()->route('tickets.index')->with('success', 'Ticket created successfully with ID: ' . $ticketId);
     }
