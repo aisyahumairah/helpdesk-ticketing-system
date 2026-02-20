@@ -69,17 +69,17 @@ class RolesAndPermissionsSeeder extends Seeder
         ];
 
         foreach ($permissions as $permission) {
-            Permission::create(['name' => $permission]);
+            Permission::firstOrCreate(['name' => $permission]);
         }
 
         // Create roles and assign permissions
 
         // Admin role - has all permissions
-        $adminRole = Role::create(['name' => 'admin']);
+        $adminRole = Role::firstOrCreate(['name' => 'admin']);
         $adminRole->givePermissionTo(Permission::all());
 
         // IT Support role
-        $itSupportRole = Role::create(['name' => 'it_support']);
+        $itSupportRole = Role::firstOrCreate(['name' => 'it_support']);
         $itSupportRole->givePermissionTo([
             'ticket.read',
             'ticket.update',
@@ -93,12 +93,10 @@ class RolesAndPermissionsSeeder extends Seeder
         ]);
 
         // User role (regular users)
-        $userRole = Role::create(['name' => 'user']);
+        $userRole = Role::firstOrCreate(['name' => 'user']);
         $userRole->givePermissionTo([
             'ticket.create',
             'ticket.read',
-            'ticket.verify',
-            'ticket.reopen',
         ]);
 
         $this->command->info('Roles and permissions seeded successfully!');

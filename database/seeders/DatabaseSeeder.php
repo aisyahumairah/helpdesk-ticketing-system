@@ -21,6 +21,8 @@ class DatabaseSeeder extends Seeder
         $this->call([
             CodeSeeder::class,
             RoleSeeder::class,
+            RolesAndPermissionsSeeder::class,
+            MailTemplatesSeeder::class
         ]);
 
         $admin = User::factory()->create([
