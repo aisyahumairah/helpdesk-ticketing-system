@@ -67,8 +67,12 @@
                                 class="fa fa-key pull-right"></i>
                             Change Password
                         </a>
-                        <a class="dropdown-item" href="{{ route('admin.settings') }}"><i
-                                class="fa fa-cog pull-right"></i> Settings</a>
+                        @can('settings.read')
+                            <a class="dropdown-item" href="{{ route('admin.settings') }}"><i
+                                    class="fa fa-cog pull-right"></i>
+                                Settings
+                            </a>
+                        @endcan
                         <a class="dropdown-item" href="#"
                             onclick="event.preventDefault(); document.getElementById('logout-form').submit();"><i
                                 class="fa fa-sign-out-alt pull-right"></i> Log Out</a>

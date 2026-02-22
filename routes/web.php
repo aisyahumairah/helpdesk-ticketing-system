@@ -29,7 +29,7 @@ Route::middleware('guest')->group(function () {
     Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.update');
 });
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'password.change'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/dashboard', function () {
         return view('dashboard');
@@ -66,7 +66,7 @@ Route::middleware('auth')->group(function () {
 
         // User Management
         Route::resource('users', AdminController::class);
-        Route::post('/users/{user}/reset-password', [AdminController::class, 'resetUserPassword'])->name('users.reset_password');
+        Route::patch('/users/{user}/reset-password', [AdminController::class, 'resetUserPassword'])->name('users.reset_password');
         Route::post('/users/{user}/toggle-status', [AdminController::class, 'toggleUserStatus'])->name('users.toggle_status');
 
         // Roles & Permissions
