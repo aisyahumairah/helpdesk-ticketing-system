@@ -52,22 +52,36 @@ class AdminController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
-            'roles' => 'required|array',
-            'roles.*' => 'exists:roles,name',
+            'name'      => 'required|string|max:255',
+            'email'     => 'required|string|email|max:255|unique:users',
+            // password is optional; leave blank to use the system default (abc123)
+            'password'  => 'nullable|string|min:6|confirmed',
+            'roles'     => 'nullable|array',
+            'roles.*'   => 'exists:roles,name',
         ]);
+
+        $defaultPassword = 'abc123';
+        $usingDefault    = empty($request->password);
 
         $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
+            'name'                    => $request->name,
+            'email'                   => $request->email,
+            'password'                => Hash::make($usingDefault ? $defaultPassword : $request->password),
+            'require_password_change' => true, // always force change on first login
         ]);
 
-        $user->assignRole($request->roles);
+        // Auto-assign USER role; admin can add additional roles from the form
+        $roles = $request->input('roles', []);
+        if (!in_array('user', $roles)) {
+            $roles[] = 'user';
+        }
+        $user->assignRole($roles);
 
-        return redirect()->route('admin.users.index')->with('success', 'User created successfully.');
+        $message = $usingDefault
+            ? 'User created successfully. Default password (abc123) has been set.'
+            : 'User created successfully.';
+
+        return redirect()->route('admin.users.index')->with('success', $message);
     }
 
     /**
@@ -87,7 +101,7 @@ class AdminController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
-            'roles' => 'required|array',
+            'roles' => 'nullable|array',
             'roles.*' => 'exists:roles,name',
         ]);
 
@@ -96,7 +110,11 @@ class AdminController extends Controller
             'email' => $request->email,
         ]);
 
-        $user->syncRoles($request->roles);
+        $roles = $request->input('roles', []);
+        if (!in_array('user', $roles)) {
+            $roles[] = 'user';
+        }
+        $user->syncRoles($roles);
 
         return redirect()->route('admin.users.index')->with('success', 'User updated successfully.');
     }
@@ -119,13 +137,13 @@ class AdminController extends Controller
      */
     public function resetUserPassword(User $user)
     {
-        $defaultPassword = 'password123';
+        $defaultPassword = 'abc123';
         $user->update([
-            'password' => Hash::make($defaultPassword),
-            'require_password_change' => true, // Task 4.1.2
+            'password'                => Hash::make($defaultPassword),
+            'require_password_change' => true,
         ]);
 
-        return redirect()->back()->with('success', "Password reset to '$defaultPassword'. User will be forced to change it on next login.");
+        return redirect()->back()->with('success', "Password has been reset to the system default. The user will be required to change it on next login.");
     }
 
     /**

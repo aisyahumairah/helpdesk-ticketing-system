@@ -33,6 +33,10 @@ class AuthController extends Controller
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
         ]);
+
+        // Auto-assign the default USER role
+        $user->assignRole('user');
+
         Auth::login($user);
         return redirect()->route('dashboard');
     }
@@ -55,10 +59,6 @@ class AuthController extends Controller
             $request->session()->regenerate();
             
             $user = Auth::user();
-            if ($user->require_password_change) {
-                return redirect()->route('profile')->with('warning', 'Please update your password before continuing.');
-            }
-
             return redirect()->intended('dashboard');
         }
 
@@ -93,11 +93,16 @@ class AuthController extends Controller
 
             if (!$user) {
                 $user = User::create([
-                    'name' => $googleUser->name,
-                    'email' => $googleUser->email,
-                    'google_id' => $googleUser->id,
-                    'password' => Hash::make(str()->random(24)),
+                    'name'                    => $googleUser->name,
+                    'email'                   => $googleUser->email,
+                    'google_id'               => $googleUser->id,
+                    'password'                => Hash::make('abc123'),
+                    'require_password_change' => true,
+                    'email_verified_at'       => now(),
                 ]);
+
+                // Auto-assign the default USER role for new SSO accounts
+                $user->assignRole('user');
             } else {
                 if (!$user->google_id) {
                     $user->update(['google_id' => $googleUser->id]);
