@@ -129,6 +129,11 @@ class AdminController extends Controller
         }
 
         $user->delete();
+
+        if (request()->ajax()) {
+            return response()->json(['message' => 'User deleted successfully.']);
+        }
+
         return redirect()->route('admin.users.index')->with('success', 'User deleted successfully.');
     }
 
@@ -142,6 +147,10 @@ class AdminController extends Controller
             'password'                => Hash::make($defaultPassword),
             'require_password_change' => true,
         ]);
+
+        if (request()->ajax()) {
+            return response()->json(['message' => "Password has been reset to the system default."]);
+        }
 
         return redirect()->back()->with('success', "Password has been reset to the system default. The user will be required to change it on next login.");
     }

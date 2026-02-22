@@ -66,7 +66,7 @@ Route::middleware(['auth', 'password.change'])->group(function () {
 
         // User Management
         Route::resource('users', AdminController::class);
-        Route::post('/users/{user}/reset-password', [AdminController::class, 'resetUserPassword'])->name('users.reset_password');
+        Route::patch('/users/{user}/reset-password', [AdminController::class, 'resetUserPassword'])->name('users.reset_password');
         Route::post('/users/{user}/toggle-status', [AdminController::class, 'toggleUserStatus'])->name('users.toggle_status');
 
         // Roles & Permissions
