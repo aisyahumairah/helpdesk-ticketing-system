@@ -73,6 +73,19 @@
         .login_content a:hover {
             text-decoration: underline;
         }
+
+        .password-container {
+            position: relative;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 15px;
+            top: 10px;
+            cursor: pointer;
+            color: #73879C;
+            z-index: 10;
+        }
     </style>
 </head>
 
@@ -105,9 +118,12 @@
                             <input type="email" name="email" class="form-control" placeholder="Email" required=""
                                 value="{{ old('email') }}" />
                         </div>
-                        <div>
-                            <input type="password" name="password" class="form-control" placeholder="Password"
-                                required="" />
+                        <div class="password-container">
+                            <input type="password" id="password" name="password" class="form-control"
+                                placeholder="Password" required="" />
+                            <span class="toggle-password">
+                                <i class="bi bi-eye"></i>
+                            </span>
                         </div>
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-primary submit">Log in</button>
@@ -139,6 +155,23 @@
             </div>
         </div>
     </div>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('.toggle-password').on('click', function() {
+                const input = $('#password');
+                const icon = $(this).find('i');
+
+                if (input.attr('type') === 'password') {
+                    input.attr('type', 'text');
+                    icon.removeClass('bi-eye').addClass('bi-eye-slash');
+                } else {
+                    input.attr('type', 'password');
+                    icon.removeClass('bi-eye-slash').addClass('bi-eye');
+                }
+            });
+        });
+    </script>
 </body>
 
 </html>
