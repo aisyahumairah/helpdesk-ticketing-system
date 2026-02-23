@@ -51,20 +51,43 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $credentials = $request->validate([
-            'email' => 'required|email',
+            'email'    => 'required|email',
             'password' => 'required',
         ]);
 
+        // ── Rate limiting / lockout ─────────────────────────────────────────
+        $maxAttempts    = (int) (\App\Models\SystemSetting::where('key', 'login_limit')->value('value') ?? 5);
+        $lockoutMinutes = (int) (\App\Models\SystemSetting::where('key', 'lockout_duration')->value('value') ?? 15);
+        $decaySeconds   = $lockoutMinutes * 60;
+
+        $throttleKey = 'login:' . strtolower($request->input('email')) . '|' . $request->ip();
+
+        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($throttleKey, $maxAttempts)) {
+            $seconds = \Illuminate\Support\Facades\RateLimiter::availableIn($throttleKey);
+            $minutes = (int) ceil($seconds / 60);
+            return back()->withErrors([
+                'email' => "Too many login attempts. Please try again in {$minutes} minute(s).",
+            ])->withInput($request->only('email'));
+        }
+
         if (Auth::attempt($credentials, $request->filled('remember'))) {
+            // Successful login — clear the rate-limit counter
+            \Illuminate\Support\Facades\RateLimiter::clear($throttleKey);
             $request->session()->regenerate();
-            
-            $user = Auth::user();
             return redirect()->intended('dashboard');
         }
 
+        // Failed — increment the rate limiter
+        \Illuminate\Support\Facades\RateLimiter::hit($throttleKey, $decaySeconds);
+
+        $attemptsUsed  = \Illuminate\Support\Facades\RateLimiter::attempts($throttleKey);
+        $attemptsLeft  = max(0, $maxAttempts - $attemptsUsed);
+
         return back()->withErrors([
-            'email' => 'The provided credentials do not match our records.',
-        ]);
+            'email' => $attemptsLeft > 0
+                ? "The provided credentials do not match our records. {$attemptsLeft} attempt(s) remaining before lockout."
+                : "Too many failed attempts. Your account is locked for {$lockoutMinutes} minute(s).",
+        ])->withInput($request->only('email'));
     }
 
     // Handle logout

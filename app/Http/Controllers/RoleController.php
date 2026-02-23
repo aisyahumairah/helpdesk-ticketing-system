@@ -32,11 +32,16 @@ class RoleController extends Controller
         ]);
 
         try {
-            $role = Role::create(['name' => $validated['name']]);
+            $role = Role::create(['name' => $validated['name'], 'guard_name' => 'web']);
             
-            if (isset($validated['permissions'])) {
-                $role->syncPermissions($validated['permissions']);
+            if (!empty($validated['permissions'])) {
+                // Fetch Permission models by ID — syncPermissions() treats plain strings as names, not IDs
+                $permissions = Permission::whereIn('id', $validated['permissions'])->get();
+                $role->syncPermissions($permissions);
             }
+
+            // Clear Spatie permission cache so changes take effect immediately
+            app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
             return redirect()->route('admin.roles.index')
                 ->with('success', 'Role created successfully!');
@@ -74,11 +79,17 @@ class RoleController extends Controller
         try {
             $role->update(['name' => $validated['name']]);
             
-            if (isset($validated['permissions'])) {
-                $role->syncPermissions($validated['permissions']);
+            if (!empty($validated['permissions'])) {
+                // Fetch Permission models by ID — syncPermissions() treats plain strings as names, not IDs
+                $permissions = Permission::whereIn('id', $validated['permissions'])->get();
+                $role->syncPermissions($permissions);
             } else {
+                // No permissions checked — revoke all
                 $role->syncPermissions([]);
             }
+
+            // Clear Spatie permission cache so changes take effect immediately
+            app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
             return redirect()->route('admin.roles.index')
                 ->with('success', 'Role updated successfully!');

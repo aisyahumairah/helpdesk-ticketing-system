@@ -26,57 +26,60 @@
                         <div class="clearfix"></div>
                     </div>
                     <div class="x_content">
-                        <table class="table table-striped table-bordered datatable" id="usersTable">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Email</th>
-                                    <th>Role</th>
-                                    <th>Created</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($users as $user)
-                                    <tr class="data-row" id="row-{{ $loop->iteration }}">
-                                        <td>{{ $user->name }}</td>
-                                        <td>{{ $user->email }}</td>
-                                        <td>
-                                            @foreach ($user->roles as $role)
-                                                <span class="badge bg-info">{{ $role->name }}</span>
-                                            @endforeach
-                                        </td>
-                                        <td>{{ $user->created_at->format('d M Y H:i:s') }}</td>
-                                        <td class="d-flex gap-2">
-                                            @can('user.update')
-                                                <a href="{{ route('admin.users.edit', $user) }}"
-                                                    class="btn btn-sm btn-info text-white">
-                                                    <i class="fa fa-edit"></i>
-                                                </a>
-                                            @endcan
-
-                                            @can('user.reset_password')
-                                                <a class="reset btn btn-sm btn-warning text-white"
-                                                    href="{{ route('admin.users.reset_password', $user) }}"
-                                                    title="Reset Password">
-                                                    <i class="fa fa-key"></i>
-                                                </a>
-                                            @endcan
-
-
-                                            @if ($user->id !== Auth::id())
-                                                @can('user.delete')
-                                                    <a class="delete btn btn-sm btn-danger"
-                                                        href="{{ route('admin.users.destroy', $user) }}">
-                                                        <i class="fa fa-trash"></i>
+                        <div class="table-responsive">
+                            <table class="table table-striped table-bordered datatable dt-responsive nowrap" id="usersTable"
+                                width="100%">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Role</th>
+                                        <th>Created</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach ($users as $user)
+                                        <tr class="data-row" id="row-{{ $loop->iteration }}">
+                                            <td>{{ $user->name }}</td>
+                                            <td>{{ $user->email }}</td>
+                                            <td>
+                                                @foreach ($user->roles as $role)
+                                                    <span class="badge bg-info">{{ $role->name }}</span>
+                                                @endforeach
+                                            </td>
+                                            <td>{{ $user->created_at->format('d M Y H:i:s') }}</td>
+                                            <td class="d-flex gap-2">
+                                                @can('user.update')
+                                                    <a href="{{ route('admin.users.edit', $user) }}"
+                                                        class="btn btn-sm btn-info text-white">
+                                                        <i class="fa fa-edit"></i>
                                                     </a>
                                                 @endcan
-                                            @endif
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+
+                                                @can('user.reset_password')
+                                                    <a class="reset btn btn-sm btn-warning text-white"
+                                                        href="{{ route('admin.users.reset_password', $user) }}"
+                                                        title="Reset Password">
+                                                        <i class="fa fa-key"></i>
+                                                    </a>
+                                                @endcan
+
+
+                                                @if ($user->id !== Auth::id())
+                                                    @can('user.delete')
+                                                        <a class="delete btn btn-sm btn-danger"
+                                                            href="{{ route('admin.users.destroy', $user) }}">
+                                                            <i class="fa fa-trash"></i>
+                                                        </a>
+                                                    @endcan
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
                         <div class="mt-3">
                             {{ $users->links() }}
                         </div>
