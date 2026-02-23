@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
 use App\Models\User;
 use App\Models\Ticket;
@@ -138,6 +141,29 @@ class AdminController extends Controller
     }
 
     /**
+     * Toggle user active/inactive status.
+     */
+    public function toggleUserStatus(User $user)
+    {
+        if ($user->id === Auth::id()) {
+            if (request()->ajax()) {
+                return response()->json(['message' => 'You cannot deactivate your own account.'], 403);
+            }
+            return redirect()->back()->with('error', 'You cannot deactivate your own account.');
+        }
+
+        $user->update(['is_active' => !$user->is_active]);
+
+        $status = $user->is_active ? 'activated' : 'deactivated';
+
+        if (request()->ajax()) {
+            return response()->json(['message' => "User {$status} successfully.", 'is_active' => $user->is_active]);
+        }
+
+        return redirect()->back()->with('success', "User {$status} successfully.");
+    }
+
+    /**
      * Reset user password.
      */
     public function resetUserPassword(User $user)
@@ -169,12 +195,100 @@ class AdminController extends Controller
      */
     public function updateSettings(Request $request)
     {
+        $request->validate([
+            'app_name'         => 'nullable|string|max:100',
+            'support_email'    => 'nullable|email|max:255',
+            'email_enabled'    => 'required|in:0,1',
+            'session_timeout'  => 'nullable|integer|min:5|max:1440',
+            'login_limit'      => 'nullable|integer|min:1|max:20',
+            'lockout_duration' => 'nullable|integer|min:1|max:1440',
+            'smtp_host'        => 'nullable|string|max:255',
+            'smtp_port'        => 'nullable|integer|in:25,465,587,2525',
+            'smtp_encryption'  => 'nullable|in:tls,ssl,',
+            'smtp_username'    => 'nullable|string|max:255',
+            'smtp_password'    => 'nullable|string|max:255',
+            'smtp_from_address'=> 'nullable|email|max:255',
+            'smtp_from_name'   => 'nullable|string|max:100',
+        ]);
+
         $data = $request->except('_token');
+
+        // If smtp_password is blank, keep the existing one (don't overwrite with empty)
+        if (empty($data['smtp_password'])) {
+            unset($data['smtp_password']);
+        }
 
         foreach ($data as $key => $value) {
             SystemSetting::updateOrCreate(['key' => $key], ['value' => $value]);
         }
 
-        return redirect()->back()->with('success', 'Settings updated successfully.');
+        // Apply SMTP settings to the running config immediately
+        $this->applySmtpConfig();
+
+        return redirect()->back()->with('success', 'Settings saved successfully.');
+    }
+
+    /**
+     * Apply SMTP settings from DB into the live Laravel mail config.
+     * Called after saving, and can be called from a ServiceProvider on boot.
+     */
+    public static function applySmtpConfig()
+    {
+        $s = SystemSetting::all()->pluck('value', 'key');
+
+        if ($s->get('smtp_host')) {
+            Config::set('mail.default', 'smtp');
+            Config::set('mail.mailers.smtp.host',       $s->get('smtp_host'));
+            Config::set('mail.mailers.smtp.port',       (int) $s->get('smtp_port', 587));
+            Config::set('mail.mailers.smtp.encryption', $s->get('smtp_encryption', 'tls'));
+            Config::set('mail.mailers.smtp.username',   $s->get('smtp_username'));
+            Config::set('mail.mailers.smtp.password',   $s->get('smtp_password'));
+        }
+
+        if ($s->get('smtp_from_address')) {
+            Config::set('mail.from.address', $s->get('smtp_from_address'));
+            Config::set('mail.from.name',    $s->get('smtp_from_name', config('app.name')));
+        }
+
+        // Apply session lifetime (in minutes)
+        if ($s->get('session_timeout')) {
+            Config::set('session.lifetime', (int) $s->get('session_timeout'));
+        }
+    }
+
+    /**
+     * Send a test email using the current (saved) SMTP settings.
+     */
+    public function testEmail(Request $request)
+    {
+        $request->validate(['to' => 'required|email']);
+
+        // Ensure latest DB settings are applied before testing
+        self::applySmtpConfig();
+
+        try {
+            $to      = $request->input('to');
+            $appName = SystemSetting::where('key', 'app_name')->value('value') ?? config('app.name');
+
+            Mail::raw(
+                "Hello,\n\nThis is a test email from {$appName} to verify your SMTP configuration is working correctly.\n\nIf you received this, your mail settings are configured correctly.",
+                function ($message) use ($to, $appName) {
+                    $message->to($to)
+                            ->subject("[{$appName}] SMTP Test Email");
+                }
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => "Test email sent successfully to {$to}. Please check your inbox.",
+            ]);
+        } catch (\Exception $e) {
+            Log::error('SMTP test failed: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to send test email: ' . $e->getMessage(),
+            ], 422);
+        }
     }
 }

@@ -77,6 +77,7 @@ Route::middleware(['auth', 'password.change'])->group(function () {
         // Settings
         Route::get('/settings', [AdminController::class, 'settings'])->name('settings');
         Route::post('/settings', [AdminController::class, 'updateSettings'])->name('settings.update');
+        Route::post('/settings/test-email', [AdminController::class, 'testEmail'])->name('settings.test_email');
 
         // Mail Templates
         Route::resource('mail-templates', MailTemplateController::class)->names('mail_templates');
