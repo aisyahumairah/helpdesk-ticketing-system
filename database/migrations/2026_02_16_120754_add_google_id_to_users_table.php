@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::table('users', function (Blueprint $table) {
             $table->string('google_id')->nullable()->unique()->after('email');
             $table->string('phone')->nullable()->after('password');
-            $table->boolean('require_password_change')->default(false)->after('phone');
+            $table->boolean('require_password_change')->default(true)->after('phone');
+            $table->boolean('is_active')->default(true)->after('require_password_change');
         });
     }
 
@@ -24,7 +25,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn(['google_id', 'phone', 'require_password_change']);
+            $table->dropColumn(['google_id', 'phone', 'require_password_change', 'is_active']);
         });
     }
 };
