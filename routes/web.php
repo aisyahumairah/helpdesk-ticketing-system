@@ -52,6 +52,7 @@ Route::middleware(['auth', 'password.change'])->group(function () {
     Route::middleware(['role:admin|it_support'])->group(function () {
         Route::get('/support/dashboard', [SupportController::class, 'dashboard'])->name('support.dashboard');
         Route::get('/support/tickets', [SupportController::class, 'tickets'])->name('support.tickets');
+        Route::get('/support/tickets/{ticket}/adminshow', [TicketController::class, 'adminShow'])->name('support.adminshow');
         Route::get('/support/reports', [SupportController::class, 'report'])->name('support.reports');
         Route::get('/support/audit-trails', [SupportController::class, 'auditTrails'])->name('support.audit_trails');
         Route::post('/tickets/{ticket}/assign', [TicketController::class, 'assign'])->name('tickets.assign');
@@ -84,4 +85,3 @@ Route::middleware(['auth', 'password.change'])->group(function () {
         Route::post('/mail-templates/{mailTemplate}/preview', [MailTemplateController::class, 'preview'])->name('mail_templates.preview');
     });
 });
-

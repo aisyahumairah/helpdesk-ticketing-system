@@ -14,40 +14,60 @@
                             <span class="badge bg-green">{{ Auth::user()->unreadNotifications->count() }}</span>
                         @endif
                     </a>
-                    <ul class="dropdown-menu dropdown-menu-end list-unstyled msg_list pb-0" role="menu"
-                        aria-labelledby="navbarDropdown1" style="min-width: 300px;">
-                        @forelse(Auth::user()->unreadNotifications->take(5) as $notification)
-                            <li class="nav-item">
-                                <a class="dropdown-item"
-                                    href="{{ route('tickets.show', $notification->data['ticket_id']) }}">
-                                    <span class="image"><img
-                                            src="https://ui-avatars.com/api/?name=System&background=random"
-                                            alt="Profile Image" /></span>
-                                    <span>
-                                        <span>{{ $notification->data['message'] }}</span>
-                                        <span class="time">{{ $notification->created_at->diffForHumans() }}</span>
-                                    </span>
-                                    <span class="message text-truncate d-block">
-                                        Ticket: {{ $notification->data['ticket_code'] }}
-                                    </span>
-                                </a>
-                            </li>
-                        @empty
-                            <li class="nav-item">
-                                <div class="text-center p-3">
-                                    <span class="text-muted">No new notifications</span>
-                                </div>
-                            </li>
-                        @endforelse
+                    <ul class="dropdown-menu dropdown-menu-end list-unstyled shadow border-0 py-0" role="menu"
+                        aria-labelledby="navbarDropdown1" style="width: 350px; max-width: 90vw; overflow: hidden;">
+                        <li class="nav-item bg-light p-2 border-bottom">
+                            <h6 class="dropdown-header p-0 ps-2">Recent Notifications</h6>
+                        </li>
+                        <div style="max-height: 400px; overflow-y: auto;">
+                            @forelse(Auth::user()->unreadNotifications->take(10) as $notification)
+                                <li class="nav-item border-bottom">
+                                    <a class="dropdown-item d-flex align-items-start gap-3 p-3 text-wrap"
+                                        href="{{ route('support.adminshow', $notification->data['ticket_id']) }}"
+                                        style="white-space: normal; background: transparent;">
+                                        <div class="flex-shrink-0 pt-1">
+                                            <div class="rounded-circle bg-info d-flex align-items-center justify-content-center text-white"
+                                                style="width: 40px; height: 40px;">
+                                                <i class="fa fa-envelope-o"></i>
+                                            </div>
+                                        </div>
+                                        <div class="flex-grow-1 min-width-0">
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <span class="fw-bold text-dark small">New Update</span>
+                                                <span class="text-muted"
+                                                    style="font-size: 0.7rem; white-space: nowrap;">
+                                                    <i class="fa fa-clock ps-1"></i>
+                                                    {{ $notification->created_at->diffForHumans(null, true) }}
+                                                </span>
+                                            </div>
+                                            <div class="text-secondary mt-1 overflow-hidden"
+                                                style="font-size: 0.85rem; line-height: 1.4; overflow-wrap: break-word;">
+                                                {{ $notification->data['message'] }}
+                                            </div>
+                                            <div class="text-primary mt-1 fw-semibold" style="font-size: 0.75rem;">
+                                                #{{ $notification->data['ticket_code'] }}
+                                            </div>
+                                        </div>
+                                    </a>
+                                </li>
+                            @empty
+                                <li class="nav-item">
+                                    <div class="text-center p-4">
+                                        <i class="fa fa-bell-slash text-muted d-block mb-2"
+                                            style="font-size: 2rem;"></i>
+                                        <span class="text-muted">No new notifications</span>
+                                    </div>
+                                </li>
+                            @endforelse
+                        </div>
 
                         @if (Auth::user()->unreadNotifications->count() > 0)
-                            <li class="nav-item border-top">
-                                <div class="text-center p-2">
-                                    <a class="dropdown-item" href="{{ route('notifications.mark_read') }}">
-                                        <strong>Mark All as Read</strong>
-                                        <i class="fa fa-angle-right ms-1"></i>
-                                    </a>
-                                </div>
+                            <li class="nav-item">
+                                <a class="dropdown-item text-center p-3 text-primary fw-bold"
+                                    href="{{ route('notifications.mark_read') }}">
+                                    <span>Mark All as Read</span>
+                                    <i class="fa fa-check-circle ms-1"></i>
+                                </a>
                             </li>
                         @endif
                     </ul>

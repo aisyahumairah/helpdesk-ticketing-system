@@ -8,6 +8,7 @@ use App\Models\Code;
 use App\Models\UploadedFile;
 use App\Models\AuditTrail;
 use App\Models\TicketStatusHistory;
+use App\Models\User;
 use App\Notifications\TicketStatusUpdated;
 use App\Notifications\TicketAssigned;
 use Illuminate\Support\Facades\Auth;
@@ -136,7 +137,7 @@ class TicketController extends Controller
      */
     public function show(Ticket $ticket)
     {
-        if ($ticket->user_id !== Auth::id() && !Auth::user()->hasAnyRole(['admin', 'it_support'])) {
+        if ($ticket->user_id !== Auth::id()) {
             abort(403);
         }
 
@@ -152,9 +153,32 @@ class TicketController extends Controller
             'replies.attachments'
         ]);
 
-        $supportUsers = \App\Models\User::role(['admin', 'it_support'])->get();
+        return view('tickets.show', compact('ticket'));
+    }
 
-        return view('tickets.show', compact('ticket', 'supportUsers'));
+    public function adminShow(Ticket $ticket)
+    {
+        $user = Auth::user();
+
+        if (!$user->can('ticket.read')) {
+            abort(403);
+        }
+
+        $ticket->load([
+            'categoryCode',
+            'urgencyCode',
+            'statusCode',
+            'attachments',
+            'user',
+            'assignedTo',
+            'auditTrails.user',
+            'replies.user',
+            'replies.attachments'
+        ]);
+
+        $supportUsers = User::role(['admin', 'it_support'])->get();
+
+        return view('tickets.adminshow', compact('ticket', 'supportUsers'));
     }
 
     /**

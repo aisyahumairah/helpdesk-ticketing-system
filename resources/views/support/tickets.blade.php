@@ -105,9 +105,9 @@
                                                 class="badge {{ $statusClass }}">{{ $ticket->statusCode->name ?? $ticket->status }}</span>
                                         </td>
                                         <td>{{ $ticket->assignedTo->name ?? 'Unassigned' }}</td>
-                                        <td>{{ $ticket->created_at->format('d M Y') }}</td>
+                                        <td>{{ $ticket->created_at->format('d M Y H:i:s') }}</td>
                                         <td>
-                                            <a href="{{ route('tickets.show', $ticket) }}"
+                                            <a href="{{ route('support.adminshow', $ticket) }}"
                                                 class="btn btn-sm btn-info text-white"><i class="fa fa-eye"></i></a>
                                         </td>
                                     </tr>
