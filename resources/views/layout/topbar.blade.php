@@ -53,6 +53,53 @@
                     </ul>
                 </li>
 
+                @canany(['user.read', 'role.read', 'settings.read', 'mail_template.read'])
+                    <li class="nav-item dropdown">
+                        <a href="javascript:;" class="user-profile dropdown-toggle" aria-haspopup="true" id="navbarDropdown"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fa fa-cog"></i>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-end dropdown-usermenu" aria-labelledby="navbarDropdown">
+                            @canany(['user.read'])
+                                <a class="dropdown-item" href="{{ route('admin.users.index') }}">
+                                    <i class="fa fa-users pull-right"></i>
+                                    Manage Users
+                                </a>
+                            @endcanany
+                            @canany(['role.read'])
+                                <a class="dropdown-item" href="{{ route('admin.roles.index') }}">
+                                    <i class="fa fa-shield pull-right"></i>
+                                    Manage Roles
+                                </a>
+                            @endcanany
+                            @canany(['permission.read'])
+                                <a class="dropdown-item" href="{{ route('admin.permissions.index') }}">
+                                    <i class="fa fa-key pull-right"></i>
+                                    Manage Permissions
+                                </a>
+                            @endcanany
+                            @canany(['settings.read'])
+                                <a class="dropdown-item" href="{{ route('admin.settings') }}">
+                                    <i class="fa fa-gear pull-right"></i>
+                                    System Settings
+                                </a>
+                            @endcanany
+                            @canany(['mail_template.read'])
+                                <a class="dropdown-item" href="{{ route('admin.mail_templates.index') }}">
+                                    <i class="fa fa-envelope pull-right"></i>
+                                    Mail Templates
+                                </a>
+                            @endcanany
+                            @canany(['audit_trail.read'])
+                                <a class="dropdown-item" href="{{ route('support.audit_trails') }}">
+                                    <i class="fa fa-history pull-right"></i>
+                                    Audit Trail
+                                </a>
+                            @endcanany
+                        </div>
+                    </li>
+                @endcanany
+
                 <li class="nav-item dropdown">
                     <a href="javascript:;" class="user-profile dropdown-toggle" aria-haspopup="true" id="navbarDropdown"
                         data-bs-toggle="dropdown" aria-expanded="false">
@@ -67,12 +114,6 @@
                                 class="fa fa-key pull-right"></i>
                             Change Password
                         </a>
-                        @can('settings.read')
-                            <a class="dropdown-item" href="{{ route('admin.settings') }}"><i
-                                    class="fa fa-cog pull-right"></i>
-                                Settings
-                            </a>
-                        @endcan
                         <a class="dropdown-item" href="#"
                             onclick="event.preventDefault(); document.getElementById('logout-form').submit();"><i
                                 class="fa fa-sign-out-alt pull-right"></i> Log Out</a>

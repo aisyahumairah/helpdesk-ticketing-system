@@ -2,7 +2,7 @@
     <div class="left_col scroll-view">
         <div class="navbar nav_title" style="border: 0;">
             <a href="{{ route('dashboard') }}" class="site_title">
-                <i class="fa fa-ticket"></i> <span>Helpdesk</span>
+                <i class="fa fa-ticket"></i> <span>{{ config('app.name') }}</span>
             </a>
         </div>
 
@@ -55,14 +55,14 @@
                         <li class="{{ request()->is('support/reports') ? 'active' : '' }}">
                             <a href="{{ route('support.reports') }}"><i class="fa fa-chart-bar"></i> Reports</a>
                         </li>
-                        <li class="{{ request()->is('support/audit*') ? 'active' : '' }}">
+                        {{-- <li class="{{ request()->is('support/audit*') ? 'active' : '' }}">
                             <a href="{{ route('support.audit_trails') }}"><i class="fa fa-history"></i> Audit Trails</a>
-                        </li>
+                        </li> --}}
                     </ul>
                 </div>
             @endhasanyrole
 
-            @role('admin')
+            {{-- @role('admin')
                 <div class="menu_section">
                     <h3>Administration</h3>
                     <ul class="nav side-menu">
@@ -89,7 +89,7 @@
                         </li>
                     </ul>
                 </div>
-            @endrole
+            @endrole --}}
         </div>
         <!-- /sidebar menu -->
 
