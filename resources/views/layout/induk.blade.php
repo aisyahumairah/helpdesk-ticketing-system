@@ -36,6 +36,9 @@
         </div>
     </div>
 
+    <!-- Modals Stack -->
+    @stack('modals')
+
     <!-- page-specific scripts -->
     @yield('script')
 
