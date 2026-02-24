@@ -142,33 +142,35 @@
                         </ul>
 
                         @php
-                            $isStaff = Auth::user()->hasAnyRole(['admin', 'it_support']);
                             $isAssigned = $ticket->assigned_to === Auth::id();
-                            $canAction = Auth::user()->hasRole('admin') || ($isStaff && $isAssigned);
                             $isOwner = $ticket->user_id === Auth::id();
                         @endphp
 
-                        @if ($canAction && !in_array($ticket->status, ['DONE', 'CLOSE']))
+                        @if (!in_array($ticket->status, ['DONE', 'CLOSE']))
                             <div class="ln_solid"></div>
                             <div class="d-flex flex-wrap gap-2">
-                                <form id="form-resolve" action="{{ route('tickets.resolve', $ticket) }}" method="POST"
-                                    class="flex-grow-1">
-                                    @csrf
-                                    <button type="button" id="btn-resolve"
-                                        class="btn btn-success text-white btn-block w-100">Mark as
-                                        Resolved
-                                    </button>
-                                </form>
-                                <form id="form-escalate" action="{{ route('tickets.escalate', $ticket) }}" method="POST"
-                                    class="flex-grow-1">
-                                    @csrf
-                                    <button type="button" id="btn-escalate"
-                                        class="btn btn-warning text-dark btn-block w-100">Escalate</button>
-                                </form>
+                                @if ($isAssigned && Auth::user()->can('ticket.resolve'))
+                                    <form id="form-resolve" action="{{ route('tickets.resolve', $ticket) }}" method="POST"
+                                        class="flex-grow-1">
+                                        @csrf
+                                        <button type="button" id="btn-resolve"
+                                            class="btn btn-success text-white btn-block w-100">Mark as
+                                            Resolved
+                                        </button>
+                                    </form>
+                                @endif
+                                @if ($isAssigned && Auth::user()->can('ticket.escalate'))
+                                    <form id="form-escalate" action="{{ route('tickets.escalate', $ticket) }}"
+                                        method="POST" class="flex-grow-1">
+                                        @csrf
+                                        <button type="button" id="btn-escalate"
+                                            class="btn btn-warning text-dark btn-block w-100">Escalate</button>
+                                    </form>
+                                @endif
                             </div>
                         @endif
 
-                        @if ($isOwner && $ticket->status == 'CLOSED')
+                        @if ($isOwner && $ticket->status == 'CLOSE')
                             <div class="ln_solid"></div>
                             <div class="d-flex flex-wrap gap-2">
                                 <form id="form-verify" action="{{ route('tickets.verify', $ticket) }}" method="POST"
