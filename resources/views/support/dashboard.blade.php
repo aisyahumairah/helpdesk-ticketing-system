@@ -93,7 +93,7 @@
                                                     class="badge bg-info">{{ $ticket->statusCode->name ?? $ticket->status }}</span>
                                             </td>
                                             <td>
-                                                <a href="{{ route('tickets.show', $ticket) }}"
+                                                <a href="{{ route('support.adminshow', $ticket) }}"
                                                     class="btn btn-sm btn-info text-white">View</a>
                                             </td>
                                         </tr>
