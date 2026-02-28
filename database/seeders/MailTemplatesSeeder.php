@@ -72,7 +72,7 @@ class MailTemplatesSeeder extends Seeder
         ];
 
         foreach ($templates as $template) {
-            MailTemplate::create($template);
+            MailTemplate::firstOrCreate($template);
         }
 
         $this->command->info('Mail templates seeded successfully!');
@@ -106,7 +106,7 @@ class MailTemplatesSeeder extends Seeder
         <div class="content">
             <p>Hello IT Support Team,</p>
             <p>A new support ticket has been created and requires your attention.</p>
-            
+
             <div class="ticket-info">
                 <p><strong>Ticket ID:</strong> {{ticket_id}}</p>
                 <p><strong>Title:</strong> {{ticket_title}}</p>
@@ -116,9 +116,9 @@ class MailTemplatesSeeder extends Seeder
                 <p><strong>Description:</strong></p>
                 <p>{{description}}</p>
             </div>
-            
+
             <a href="{{ticket_url}}" class="button">View Ticket</a>
-            
+
             <p>Please review and assign this ticket as soon as possible.</p>
         </div>
         <div class="footer">
@@ -158,14 +158,14 @@ HTML;
         <div class="content">
             <p>Hello,</p>
             <p>A ticket has been assigned to you by {{assigned_by}}.</p>
-            
+
             <div class="ticket-info">
                 <p><strong>Ticket ID:</strong> {{ticket_id}}</p>
                 <p><strong>Title:</strong> {{ticket_title}}</p>
             </div>
-            
+
             <a href="{{ticket_url}}" class="button">View & Respond</a>
-            
+
             <p>Please review the ticket and provide assistance to the user.</p>
         </div>
         <div class="footer">
@@ -205,17 +205,17 @@ HTML;
         <div class="content">
             <p>Hello {{user_name}},</p>
             <p>Great news! Your support ticket has been resolved by our IT team.</p>
-            
+
             <div class="ticket-info">
                 <p><strong>Ticket ID:</strong> {{ticket_id}}</p>
                 <p><strong>Title:</strong> {{ticket_title}}</p>
                 <p><strong>Resolved by:</strong> {{resolved_by}}</p>
             </div>
-            
+
             <p>Please verify that the issue has been resolved to your satisfaction.</p>
-            
+
             <a href="{{ticket_url}}" class="button">Verify Resolution</a>
-            
+
             <p>If the issue persists, you can reopen the ticket from the link above.</p>
         </div>
         <div class="footer">
@@ -255,16 +255,16 @@ HTML;
         <div class="content">
             <p>Hello IT Support Team,</p>
             <p>A ticket has been reopened by the user and requires further attention.</p>
-            
+
             <div class="ticket-info">
                 <p><strong>Ticket ID:</strong> {{ticket_id}}</p>
                 <p><strong>Title:</strong> {{ticket_title}}</p>
                 <p><strong>Reopened by:</strong> {{user_name}}</p>
                 <p><strong>Reopen Count:</strong> #{{reopen_count}}</p>
             </div>
-            
+
             <a href="{{ticket_url}}" class="button">View Ticket</a>
-            
+
             <p>Please review the ticket and provide additional assistance.</p>
         </div>
         <div class="footer">
@@ -303,12 +303,12 @@ HTML;
         <div class="content">
             <p>Hello,</p>
             <p>{{reply_by}} has replied to ticket <strong>{{ticket_id}}</strong>.</p>
-            
+
             <div class="reply-box">
                 <p><strong>Reply:</strong></p>
                 <p>{{reply_content}}</p>
             </div>
-            
+
             <a href="{{ticket_url}}" class="button">View & Respond</a>
         </div>
         <div class="footer">
@@ -347,9 +347,9 @@ HTML;
             <p>Hello {{user_name}},</p>
             <p>Welcome to our helpdesk system! Your account has been successfully created.</p>
             <p>You can now log in and submit support tickets whenever you need assistance.</p>
-            
+
             <a href="{{login_url}}" class="button">Login Now</a>
-            
+
             <p>If you have any questions, feel free to reach out to our support team.</p>
         </div>
         <div class="footer">
@@ -388,9 +388,9 @@ HTML;
         <div class="content">
             <p>Hello {{user_name}},</p>
             <p>We received a request to reset your password for {{app_name}}.</p>
-            
+
             <a href="{{reset_url}}" class="button">Reset Password</a>
-            
+
             <div class="warning">
                 <p><strong>Security Notice:</strong></p>
                 <p>If you did not request a password reset, please ignore this email or contact support if you have concerns.</p>
