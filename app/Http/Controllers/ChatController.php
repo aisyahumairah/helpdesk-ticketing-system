@@ -203,13 +203,17 @@ class ChatController extends Controller
             $latest = $messages->first();
             $msgText = $latest->message ? \Illuminate\Support\Str::limit($latest->message, 40) : 'Sent an attachment';
             
+            $isSupport = Auth::user()->hasRole(['admin', 'it_support']);
+            $url = $isSupport ? route('support.adminshow', $latest->ticket_id) : route('tickets.show', $latest->ticket_id);
+
             return [
                 'ticket_id' => $latest->ticket_id,
                 'ticket_code' => $latest->ticket->ticket_id,
                 'sender_name' => $latest->user->name,
                 'message' => $msgText,
                 'time' => $latest->created_at->diffForHumans(null, true),
-                'unread_count' => $messages->count()
+                'unread_count' => $messages->count(),
+                'url' => $url
             ];
         })->values();
 

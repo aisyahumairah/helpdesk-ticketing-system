@@ -3,6 +3,9 @@
         <div class="nav toggle">
             <a id="menu_toggle"><i class="fa fa-bars"></i></a>
         </div>
+        <div class="nav toggle" style="display: inline-block; padding-">
+            <h1 class="pt-1 ml-n3 font-weight-bold" style="font-size: 22px;">TechDesk</h1>
+        </div>
         <nav class="nav navbar-nav ms-auto">
             <ul class="navbar-right d-flex align-items-center gap-3 pe-3">
                 <li role="presentation" class="nav-item dropdown">
@@ -45,7 +48,7 @@
                             @forelse(Auth::user()->unreadNotifications->take(10) as $notification)
                                 <li class="nav-item border-bottom">
                                     <a class="dropdown-item d-flex align-items-start gap-3 p-3 text-wrap"
-                                        href="{{ route('support.adminshow', $notification->data['ticket_id']) }}"
+                                        href="{{ Auth::user()->hasRole(['admin', 'it_support']) ? route('support.adminshow', $notification->data['ticket_id']) : route('tickets.show', $notification->data['ticket_id']) }}"
                                         style="white-space: normal; background: transparent;">
                                         <div class="flex-shrink-0 pt-1">
                                             <div class="rounded-circle bg-info d-flex align-items-center justify-content-center text-white"
@@ -173,7 +176,8 @@
 document.addEventListener('DOMContentLoaded', function() {
     if (window.Echo && {{ Auth::check() ? 'true' : 'false' }}) {
         const userId = {{ Auth::id() ?? 'null' }};
-        
+        const isAdmin = {{ Auth::user()->hasRole(['admin', 'it_support']) ? 'true' : 'false' }};
+
         // Fetch initial unread chat count
         if (userId) {
             function updateChatDropdown() {
@@ -184,15 +188,15 @@ document.addEventListener('DOMContentLoaded', function() {
                         const badge = document.getElementById('chat-badge');
                         const container = document.getElementById('chat-items-container');
                         const noItems = document.getElementById('no-chat-items');
-                        
+
                         if (count > 0) {
                             badge.innerText = count;
                             badge.classList.remove('d-none');
                             noItems.classList.add('d-none');
-                            
+
                             container.innerHTML = '';
                             chats.forEach(chat => {
-                                const url = `/tickets/${chat.ticket_id}/chat`;
+                                const url = chat.url;
                                 const html = `
                                     <li class="nav-item border-bottom">
                                         <a class="dropdown-item d-flex align-items-start gap-3 p-3 text-wrap"
@@ -232,7 +236,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     })
                     .catch(err => console.error('Failed to fetch unread chat count', err));
             }
-            
+
             // Initial call
             updateChatDropdown();
 
@@ -244,23 +248,23 @@ document.addEventListener('DOMContentLoaded', function() {
                             // User is actively looking at this chat, suppress notification
                             return;
                         }
-                        
+
                         // Otherwise, show toastr and update chat badge/dropdown
                         toastr.info(e.message, e.title, {
                             onclick: function() {
-                                window.location.href = `/tickets/${e.ticket_id}/chat`;
+                                window.location.href = isAdmin ? `/support/tickets/${e.ticket_id}/adminshow` : `/tickets/${e.ticket_id}`;
                             }
                         });
-                        
+
                         updateChatDropdown();
                     } else {
                         // Regular notification
                         toastr.success(e.message, e.title, {
                             onclick: function() {
-                                window.location.href = `/support/tickets/${e.ticket_id}/adminshow`;
+                                window.location.href = isAdmin ? `/support/tickets/${e.ticket_id}/adminshow` : `/tickets/${e.ticket_id}`;
                             }
                         });
-                        
+
                         const badge = document.querySelector('#navbarDropdown1 .badge');
                         if (badge) {
                             badge.innerText = parseInt(badge.innerText) + 1;

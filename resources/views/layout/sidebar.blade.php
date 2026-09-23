@@ -1,10 +1,10 @@
 <div class="col-md-3 col-sm-12 col-xs-12 left_col">
     <div class="left_col scroll-view">
-        <div class="navbar nav_title" style="border: 0;">
+        {{-- <div class="navbar nav_title" style="border: 0;">
             <a href="{{ route('dashboard') }}" class="site_title">
                 <i class="fa fa-ticket"></i> <span>{{ config('app.name') }}</span>
             </a>
-        </div>
+        </div> --}}
 
         <div class="clearfix"></div>
 
