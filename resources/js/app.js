@@ -13,6 +13,27 @@ window.Swal = Swal;
 import select2 from 'select2';
 select2(); // Attaches to jQuery
 
+// Toastr
+import toastr from 'toastr';
+window.toastr = toastr;
+toastr.options = {
+    "closeButton": true,
+    "debug": false,
+    "newestOnTop": true,
+    "progressBar": true,
+    "positionClass": "toast-bottom-right",
+    "preventDuplicates": false,
+    "onclick": null,
+    "showDuration": "300",
+    "hideDuration": "1000",
+    "timeOut": "5000",
+    "extendedTimeOut": "1000",
+    "showEasing": "swing",
+    "hideEasing": "linear",
+    "showMethod": "fadeIn",
+    "hideMethod": "fadeOut"
+};
+
 // DataTables
 import DataTable from 'datatables.net-bs5';
 import 'datatables.net-responsive-bs5';

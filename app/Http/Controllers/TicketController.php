@@ -7,6 +7,7 @@ use App\Models\Ticket;
 use App\Models\Code;
 use App\Models\UploadedFile;
 use App\Models\AuditTrail;
+use App\Models\ChatMessage;
 use App\Models\TicketStatusHistory;
 use App\Models\User;
 use App\Notifications\TicketStatusUpdated;
@@ -153,7 +154,30 @@ class TicketController extends Controller
             'replies.attachments'
         ]);
 
-        return view('tickets.show', compact('ticket'));
+        $messages = ChatMessage::with(['user', 'replyTo.user', 'attachments'])
+            ->where('ticket_id', $ticket->id)
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        $timeline = $ticket->auditTrails->map(function ($trail) {
+            return (object) [
+                'type' => 'audit',
+                'event' => $trail->event,
+                'user_name' => $trail->user->name ?? 'System',
+                'created_at' => $trail->created_at,
+                'details' => is_array($trail->details) ? ($trail->details['message'] ?? $trail->event) : $trail->details,
+            ];
+        })->concat($messages->map(function ($msg) {
+            return (object) [
+                'type' => 'chat',
+                'event' => 'Sent a chat message',
+                'user_name' => $msg->user->name ?? 'Unknown',
+                'created_at' => $msg->created_at,
+                'details' => $msg->message ?: 'Sent an attachment',
+            ];
+        }))->sortByDesc('created_at')->values();
+
+        return view('tickets.show', compact('ticket', 'messages', 'timeline'));
     }
 
     public function adminShow(Ticket $ticket)
@@ -178,7 +202,30 @@ class TicketController extends Controller
 
         $supportUsers = User::role(['admin', 'it_support'])->get();
 
-        return view('tickets.adminshow', compact('ticket', 'supportUsers'));
+        $messages = ChatMessage::with(['user', 'replyTo.user', 'attachments'])
+            ->where('ticket_id', $ticket->id)
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        $timeline = $ticket->auditTrails->map(function ($trail) {
+            return (object) [
+                'type' => 'audit',
+                'event' => $trail->event,
+                'user_name' => $trail->user->name ?? 'System',
+                'created_at' => $trail->created_at,
+                'details' => is_array($trail->details) ? ($trail->details['message'] ?? $trail->event) : $trail->details,
+            ];
+        })->concat($messages->map(function ($msg) {
+            return (object) [
+                'type' => 'chat',
+                'event' => 'Sent a chat message',
+                'user_name' => $msg->user->name ?? 'Unknown',
+                'created_at' => $msg->created_at,
+                'details' => $msg->message ?: 'Sent an attachment',
+            ];
+        }))->sortByDesc('created_at')->values();
+
+        return view('tickets.adminshow', compact('ticket', 'supportUsers', 'messages', 'timeline'));
     }
 
     /**

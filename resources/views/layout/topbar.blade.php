@@ -5,6 +5,28 @@
         </div>
         <nav class="nav navbar-nav ms-auto">
             <ul class="navbar-right d-flex align-items-center gap-3 pe-3">
+                <li role="presentation" class="nav-item dropdown">
+                    <a href="javascript:;" class="dropdown-toggle info-number" id="chatDropdown"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fa fa-comments"></i>
+                        <span class="badge bg-green d-none" id="chat-badge">0</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end list-unstyled shadow border-0 py-0" role="menu"
+                        aria-labelledby="chatDropdown" style="width: 350px; max-width: 90vw; overflow: hidden;" id="chat-dropdown-list">
+                        <li class="nav-item bg-light p-2 border-bottom">
+                            <h6 class="dropdown-header p-0 ps-2">Unread Chats</h6>
+                        </li>
+                        <div id="chat-items-container" style="max-height: 400px; overflow-y: auto;">
+                            <!-- Dynamically populated via JS -->
+                        </div>
+                        <li class="nav-item" id="no-chat-items">
+                            <div class="text-center p-4">
+                                <i class="fa fa-comments-o text-muted d-block mb-2" style="font-size: 2rem;"></i>
+                                <span class="text-muted">No new chats</span>
+                            </div>
+                        </li>
+                    </ul>
+                </li>
 
                 <li role="presentation" class="nav-item dropdown">
                     <a href="javascript:;" class="dropdown-toggle info-number" id="navbarDropdown1"
@@ -146,3 +168,111 @@
         </nav>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.Echo && {{ Auth::check() ? 'true' : 'false' }}) {
+        const userId = {{ Auth::id() ?? 'null' }};
+        
+        // Fetch initial unread chat count
+        if (userId) {
+            function updateChatDropdown() {
+                axios.get('{{ route("chat.unread_count") }}')
+                    .then(res => {
+                        const count = res.data.count;
+                        const chats = res.data.chats;
+                        const badge = document.getElementById('chat-badge');
+                        const container = document.getElementById('chat-items-container');
+                        const noItems = document.getElementById('no-chat-items');
+                        
+                        if (count > 0) {
+                            badge.innerText = count;
+                            badge.classList.remove('d-none');
+                            noItems.classList.add('d-none');
+                            
+                            container.innerHTML = '';
+                            chats.forEach(chat => {
+                                const url = `/tickets/${chat.ticket_id}/chat`;
+                                const html = `
+                                    <li class="nav-item border-bottom">
+                                        <a class="dropdown-item d-flex align-items-start gap-3 p-3 text-wrap"
+                                            href="${url}"
+                                            style="white-space: normal; background: transparent;">
+                                            <div class="flex-shrink-0 pt-1">
+                                                <div class="rounded-circle bg-success d-flex align-items-center justify-content-center text-white"
+                                                    style="width: 40px; height: 40px;">
+                                                    <i class="fa fa-user"></i>
+                                                </div>
+                                            </div>
+                                            <div class="flex-grow-1 min-width-0">
+                                                <div class="d-flex justify-content-between align-items-start">
+                                                    <span class="fw-bold text-dark small">${chat.sender_name} <span class="badge bg-danger ms-1">${chat.unread_count}</span></span>
+                                                    <span class="text-muted" style="font-size: 0.7rem; white-space: nowrap;">
+                                                        <i class="fa fa-clock ps-1"></i> ${chat.time}
+                                                    </span>
+                                                </div>
+                                                <div class="text-primary mt-1 fw-semibold" style="font-size: 0.75rem;">
+                                                    #${chat.ticket_code}
+                                                </div>
+                                                <div class="text-secondary mt-1 overflow-hidden"
+                                                    style="font-size: 0.85rem; line-height: 1.4; overflow-wrap: break-word;">
+                                                    ${chat.message}
+                                                </div>
+                                            </div>
+                                        </a>
+                                    </li>
+                                `;
+                                container.insertAdjacentHTML('beforeend', html);
+                            });
+                        } else {
+                            badge.classList.add('d-none');
+                            noItems.classList.remove('d-none');
+                            container.innerHTML = '';
+                        }
+                    })
+                    .catch(err => console.error('Failed to fetch unread chat count', err));
+            }
+            
+            // Initial call
+            updateChatDropdown();
+
+            window.Echo.private(`user.${userId}`)
+                .listen('.new-notification', (e) => {
+                    if (e.type === 'chat') {
+                        // Check if user is currently on this ticket's chat page
+                        if (window.currentChatTicketId && window.currentChatTicketId == e.ticket_id) {
+                            // User is actively looking at this chat, suppress notification
+                            return;
+                        }
+                        
+                        // Otherwise, show toastr and update chat badge/dropdown
+                        toastr.info(e.message, e.title, {
+                            onclick: function() {
+                                window.location.href = `/tickets/${e.ticket_id}/chat`;
+                            }
+                        });
+                        
+                        updateChatDropdown();
+                    } else {
+                        // Regular notification
+                        toastr.success(e.message, e.title, {
+                            onclick: function() {
+                                window.location.href = `/support/tickets/${e.ticket_id}/adminshow`;
+                            }
+                        });
+                        
+                        const badge = document.querySelector('#navbarDropdown1 .badge');
+                        if (badge) {
+                            badge.innerText = parseInt(badge.innerText) + 1;
+                        } else {
+                            const bellIcon = document.querySelector('#navbarDropdown1 i');
+                            if (bellIcon) {
+                                bellIcon.insertAdjacentHTML('afterend', '<span class="badge bg-green">1</span>');
+                            }
+                        }
+                    }
+                });
+        }
+    }
+});
+</script>

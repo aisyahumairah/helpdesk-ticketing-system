@@ -10,6 +10,7 @@ use App\Http\Controllers\TicketController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\MailTemplateController;
+use App\Http\Controllers\ChatController;
 
 // Authentication Routes
 Route::middleware('guest')->group(function () {
@@ -47,6 +48,12 @@ Route::middleware(['auth', 'password.change'])->group(function () {
     Route::post('/tickets/{ticket}/reply', [ReplyController::class, 'store'])->name('tickets.reply');
     Route::patch('/tickets/{ticket}/verify', [TicketController::class, 'verify'])->name('tickets.verify');
     Route::patch('/tickets/{ticket}/reopen', [TicketController::class, 'reopen'])->name('tickets.reopen');
+    Route::get('/tickets/{ticket}/chat', [ChatController::class, 'index'])->name('tickets.chat');
+    Route::get('/chat/unread-count', [ChatController::class, 'unreadCount'])->name('chat.unread_count');
+    Route::post('/tickets/{ticket}/chat', [ChatController::class, 'store'])->name('tickets.chat.store');
+    Route::post('/tickets/{ticket}/chat/read', [ChatController::class, 'markRead'])->name('tickets.chat.read');
+    Route::delete('/tickets/{ticket}/chat/all', [ChatController::class, 'destroyAll'])->name('tickets.chat.destroyAll');
+    Route::delete('/tickets/{ticket}/chat/{chatMessage}', [ChatController::class, 'destroy'])->name('tickets.chat.destroy');
 
     // IT Support Routes
     Route::middleware(['role:admin|it_support'])->group(function () {

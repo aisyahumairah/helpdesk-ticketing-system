@@ -7,6 +7,18 @@
                 <h3>Ticket Details</h3>
             </div>
             <div class="title_right text-end">
+                {{-- <a href="{{ route('tickets.chat', $ticket) }}" class="btn btn-primary">
+                    <i class="fa fa-comments"></i> Chat
+                    @php
+                        $unread = \App\Models\ChatMessage::where('ticket_id', $ticket->id)
+                            ->where('user_id', '!=', Auth::id())
+                            ->where('is_read', false)
+                            ->count();
+                    @endphp
+                    @if($unread > 0)
+                        <span class="badge bg-danger ms-1">{{ $unread }}</span>
+                    @endif
+                </a> --}}
                 <a href="{{ route('tickets.index') }}" class="btn btn-secondary">
                     <i class="fa fa-arrow-left"></i>
                     Back to List
@@ -21,7 +33,7 @@
                 @include('tickets.ticketdetails')
 
                 {{-- Threaded Conversation --}}
-                @include('tickets.replies')
+                @include('tickets.reply')
             </div>
 
             <div class="col-md-4 col-sm-12 col-xs-12">
