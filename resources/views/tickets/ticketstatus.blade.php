@@ -16,7 +16,7 @@
             <li class="mb-2"><strong>Category:</strong>
                 {{ $ticket->categoryCode->name ?? $ticket->category }}</li>
             <li class="mb-2"><strong>Created By:</strong> {{ $ticket->user->name }}</li>
-            <li class="mb-2"><strong>Date:</strong> {{ $ticket->created_at->format('d M Y, H:i') }}</li>
+            <li class="mb-2"><strong>Date:</strong> {{ $ticket->created_at->format('d M Y, h:i:s A') }}</li>
         </ul>
 
         @php
