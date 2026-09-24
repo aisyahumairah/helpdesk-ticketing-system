@@ -71,7 +71,14 @@
                     confirmButtonText: 'Yes, Verify!'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        $('#form-verify').submit();
+                        axios.patch($('#form-verify').attr('action'))
+                            .then(res => {
+                                showSuccess(res.data.message || 'Ticket verified successfully!');
+                                setTimeout(() => window.location.reload(), 1500);
+                            })
+                            .catch(err => {
+                                showError(err.response?.data?.error || 'Failed to verify ticket.');
+                            });
                     }
                 });
             });
@@ -89,7 +96,14 @@
                     confirmButtonText: 'Yes, Reopen!'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        $('#form-reopen').submit();
+                        axios.patch($('#form-reopen').attr('action'))
+                            .then(res => {
+                                showSuccess(res.data.message || 'Ticket reopened successfully!');
+                                setTimeout(() => window.location.reload(), 1500);
+                            })
+                            .catch(err => {
+                                showError(err.response?.data?.error || 'Failed to reopen ticket.');
+                            });
                     }
                 });
             });

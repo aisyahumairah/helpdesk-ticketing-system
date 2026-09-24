@@ -216,20 +216,11 @@
     }
 
 </style>
-</style>
 
 <script>
-    const currentUserId = {
-        {
-            Auth::id()
-        }
-    };
+    const currentUserId = {{ Auth::id() }};
     const currentUserName = "{{ Auth::user()->name }}";
-    const ticketId = {
-        {
-            $ticket - > id
-        }
-    };
+    const ticketId = {{ $ticket->id }};
     const chatContainer = document.getElementById('chat-messages');
 
     // Set global chat ticket ID so topbar can suppress notifications

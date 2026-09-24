@@ -54,12 +54,14 @@
                 <form id="form-verify" action="{{ route('tickets.verify', $ticket) }}" method="POST"
                     class="flex-grow-1">
                     @csrf
+                    @method('PATCH')
                     <button type="button" id="btn-verify" class="btn btn-success text-white btn-block w-100">Verify
                         Resolution</button>
                 </form>
                 <form id="form-reopen" action="{{ route('tickets.reopen', $ticket) }}" method="POST"
                     class="flex-grow-1">
                     @csrf
+                    @method('PATCH')
                     <button type="button" id="btn-reopen" class="btn btn-danger text-white btn-block w-100">Reopen
                         Ticket</button>
                 </form>

@@ -85,11 +85,7 @@
             let options = {};
             supportUsers.forEach(user => {
                 // Exclude current user from escalation list
-                if (user.id != {
-                        {
-                            Auth::id()
-                        }
-                    }) {
+                if (user.id != {{ Auth::id() }}) {
                     options[user.id] = user.name;
                 }
             });
